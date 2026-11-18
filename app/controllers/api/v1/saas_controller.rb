@@ -5,7 +5,6 @@ module API
     class SaasController < APIController
       skip_before_action :authenticate_user!
       before_action :authenticate_api_user!
-      around_action :with_request_context
 
       rescue_from Authorization::Forbidden, with: :render_forbidden
       rescue_from Collaboration::Conflict, with: :render_conflict
@@ -20,12 +19,6 @@ module API
         return if current_user&.active_for_authentication?
 
         api_error('unauthenticated', 'Sign in to continue', :unauthorized)
-      end
-
-      def with_request_context(&)
-        Current.set(user: current_user, request_id: request.request_id, &)
-      ensure
-        Current.reset
       end
 
       def authorize!(action, resource)

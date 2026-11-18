@@ -78,4 +78,15 @@ RSpec.describe 'Notifications API', openapi: { security: [{ 'BearerAuth' => [] }
     get '/api/v1/security_notifications'
     expect(response).to have_http_status(:unauthorized)
   end
+
+  it 'renders existing in-app notifications using current personal and team language preferences' do
+    publish_activity
+    team.update!(locale: 'zh-CN')
+    get "/api/v1/teams/#{team.id}/notifications", headers: headers
+    expect(json.fetch(:data).sole.fetch(:title)).to eq('您已加入团队')
+
+    user.update!(preferences: { 'locale' => 'en' })
+    get "/api/v1/teams/#{team.id}/notifications", headers: headers
+    expect(json.fetch(:data).sole.fetch(:title)).to eq('You joined a team')
+  end
 end

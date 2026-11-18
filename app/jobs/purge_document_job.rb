@@ -11,6 +11,13 @@ class PurgeDocumentJob < ApplicationJob
 
   private
 
+  def execution_context
+    document = Document.find_by(id: arguments.first)
+    return {} unless document
+
+    { user: document.uploader, team: document.team }
+  end
+
   def purge_document(document_id)
     document = Document.with_attached_file.find_by(id: document_id)
     attempt = claim_attempt(document)

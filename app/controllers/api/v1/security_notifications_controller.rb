@@ -17,7 +17,7 @@ module API
       private
 
       def notifications
-        Notification.visible_to(current_user).where(team_id: nil, category: 'security')
+        Notification.visible_to(current_user).where(team_id: nil, category: 'security').includes(:user, :team)
       end
     end
   end

@@ -13,22 +13,27 @@ class SendNotificationDeliveryJob < ApplicationJob
 
   private
 
+  # The worker reconstructs correlation fields from its trusted notification record.
+  # :reek:FeatureEnvy
+  def execution_context
+    notification = NotificationDelivery.find_by(id: arguments.first)&.notification
+    return {} unless notification
+
+    { user: notification.user, team: notification.team }
+  end
+
   # The worker owns delivery orchestration; the model owns the lease and state transitions.
   # :reek:FeatureEnvy
   def send_claimed(delivery, lease)
     notification = delivery.notification
-    Current.set(user: notification.user, team: notification.team) do
-      if should_deliver?(notification)
-        NotificationMailer.notice(notification).deliver_now
-        delivery.finish!(lease)
-      else
-        delivery.finish!(lease, status: 'skipped')
-      end
+    if should_deliver?(notification)
+      NotificationMailer.notice(notification).deliver_now
+      delivery.finish!(lease)
+    else
+      delivery.finish!(lease, status: 'skipped')
     end
   rescue StandardError => exception
     delivery.fail!(lease, exception)
-  ensure
-    Current.reset
   end
 
   def should_deliver?(notification)

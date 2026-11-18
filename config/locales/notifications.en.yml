@@ -1,0 +1,40 @@
+en:
+  notifications:
+    password_changed:
+      title: Your password changed
+      body: The password for your account was changed.
+    account_suspended:
+      title: Your account was suspended
+      body: Access to your account has been suspended.
+    account_restored:
+      title: Your account was restored
+      body: You can sign in to your account again.
+    invitation_accepted:
+      title: You joined a team
+      body: Your team invitation was accepted.
+    member_role_changed:
+      title: Your team role changed
+      body: Your permissions in this team have changed.
+    ownership_transferred:
+      title: Team ownership changed
+      body: Ownership of this team has been transferred.
+    export:
+      ready:
+        title: Your export is ready
+        body: Your team export is ready to download.
+    deletion:
+      team_requested:
+        title: Team deletion requested
+        body: Deletion of this team has been scheduled.
+      team_canceled:
+        title: Team deletion canceled
+        body: The request to delete this team was canceled.
+      account_requested:
+        title: Account deletion requested
+        body: Deletion of your account was scheduled.
+      account_canceled:
+        title: Account deletion canceled
+        body: The account deletion request was canceled.
+      team_completed:
+        title: Team deleted
+        body: The requested team deletion has completed.

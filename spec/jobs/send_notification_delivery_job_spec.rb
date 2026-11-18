@@ -49,6 +49,16 @@ RSpec.describe SendNotificationDeliveryJob do
     expect(delivery.reload.status).to eq('skipped')
   end
 
+  it 'uses the current personal language when sending an already queued notification' do
+    delivery = activity_delivery
+    user.update!(preferences: { 'locale' => 'zh-CN' })
+    described_class.perform_now(delivery.id)
+
+    message = ActionMailer::Base.deliveries.last
+    expect(message.subject).to eq('您的团队角色已更改')
+    expect(message.body.decoded).to include('您在此团队中的权限已更改。')
+  end
+
   it 'sends compulsory security alerts even for a suspended user' do
     user.suspend!
     NotificationPreference.find_by!(user:).update!(activity_email: false)

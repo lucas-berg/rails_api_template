@@ -1,0 +1,40 @@
+zh-CN:
+  notifications:
+    password_changed:
+      title: 您的密码已更改
+      body: 您的账号密码已更改。
+    account_suspended:
+      title: 您的账号已停用
+      body: 您的账号访问权限已停用。
+    account_restored:
+      title: 您的账号已恢复
+      body: 您现在可以重新登录账号。
+    invitation_accepted:
+      title: 您已加入团队
+      body: 您的团队邀请已接受。
+    member_role_changed:
+      title: 您的团队角色已更改
+      body: 您在此团队中的权限已更改。
+    ownership_transferred:
+      title: 团队所有权已转移
+      body: 此团队的所有权已转移。
+    export:
+      ready:
+        title: 您的导出文件已准备就绪
+        body: 您的团队数据导出文件已可下载。
+    deletion:
+      team_requested:
+        title: 已申请删除团队
+        body: 此团队的删除已排期。
+      team_canceled:
+        title: 已取消删除团队
+        body: 此团队的删除申请已取消。
+      account_requested:
+        title: 已申请注销账号
+        body: 您的账号注销已排期。
+      account_canceled:
+        title: 已取消注销账号
+        body: 您的账号注销申请已取消。
+      team_completed:
+        title: 团队已删除
+        body: 申请的团队删除已完成。

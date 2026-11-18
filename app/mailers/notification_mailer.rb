@@ -2,7 +2,7 @@
 
 class NotificationMailer < ApplicationMailer
   def notice(notification)
-    content = Notifications::Catalog.text(notification.kind)
+    content = notification.localized_content
     mail(to: notification.user.email, subject: content.fetch('title')) do |format|
       format.text { render plain: content.fetch('body') }
     end

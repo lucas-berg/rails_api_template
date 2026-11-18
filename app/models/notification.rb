@@ -1,5 +1,32 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: notifications
+#
+#  id         :bigint           not null, primary key
+#  category   :string           not null
+#  event_key  :string           not null
+#  kind       :string           not null
+#  read_at    :datetime
+#  visible_at :datetime
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  team_id    :bigint
+#  user_id    :integer          not null
+#
+# Indexes
+#
+#  index_notifications_on_team_id                             (team_id)
+#  index_notifications_on_user_id                             (user_id)
+#  index_notifications_on_user_id_and_event_key               (user_id,event_key) UNIQUE
+#  index_notifications_on_user_id_and_team_id_and_created_at  (user_id,team_id,created_at)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (team_id => teams.id)
+#  fk_rails_...  (user_id => users.id)
+#
 class Notification < ApplicationRecord
   belongs_to :user
   belongs_to :team, optional: true
@@ -35,7 +62,11 @@ class Notification < ApplicationRecord
 
   def presentation
     attributes.slice('id', 'kind', 'category', 'team_id', 'read_at', 'created_at')
-              .merge(Notifications::Catalog.text(kind))
+              .merge(localized_content)
+  end
+
+  def localized_content
+    Notifications::Catalog.text(kind, user:, team:)
   end
 
   private

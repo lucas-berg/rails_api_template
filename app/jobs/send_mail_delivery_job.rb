@@ -15,6 +15,15 @@ class SendMailDeliveryJob < ApplicationJob
 
   private
 
+  # The worker reconstructs correlation fields from its trusted delivery record.
+  # :reek:FeatureEnvy
+  def execution_context
+    delivery = MailDelivery.find_by(id: arguments.first)
+    return {} unless delivery
+
+    { user: delivery.user, team: Team.find_by(id: delivery.team_id) }
+  end
+
   def send_claimed(delivery, lease)
     message = MailDeliveryMessage.new(delivery).build
     if message
