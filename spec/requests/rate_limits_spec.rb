@@ -63,4 +63,28 @@ RSpec.describe 'Rate limits' do
   ensure
     first&.delete(key)
   end
+
+  it 'protects HTML and trailing-slash login variants and the real administrator route' do
+    %w[/users/sign_in.html /users/sign_in/ /admin/login].each do |path|
+      Rack::Attack.cache.store.clear
+      11.times do
+        post path, params: { user: { email: 'absent@example.com', password: 'wrong' },
+                             admin_user: { email: 'absent@example.com', password: 'wrong' } }
+        Prosopite.finish
+        Prosopite.scan
+      end
+      expect(response).to have_http_status(:too_many_requests)
+    end
+  end
+
+  it 'protects HTML confirmation and password forms' do
+    %w[password confirmation].each do |action|
+      4.times do
+        post "/users/#{action}.html", params: { user: { email: 'absent@example.com' } }
+        Prosopite.finish
+        Prosopite.scan
+      end
+      expect(response).to have_http_status(:too_many_requests)
+    end
+  end
 end

@@ -60,6 +60,10 @@ ActiveAdmin.setup do |config|
   config.authorization_adapter = 'PlatformAuthorization'
   config.on_unauthorized_access = :access_denied
   config.download_links = false
+  # Hiding CSV links alone does not disable ActiveAdmin's automatic all-column exports.
+  config.before_action do
+    head :not_acceptable unless request.format.html?
+  end
 
   # == User Authorization
   #

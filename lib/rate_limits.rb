@@ -18,6 +18,10 @@ module RateLimits
     )
   end
 
+  def self.auth_path(request)
+    URI::DEFAULT_PARSER.unescape(request.path).squeeze('/').delete_suffix('/').sub(%r{\.[^/.]+\z}, '')
+  end
+
   def self.email(request)
     params = request.media_type == 'application/json' ? json_body(request) : request.params
     value = nested_email(params)

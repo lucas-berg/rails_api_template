@@ -83,4 +83,35 @@ RSpec.describe 'Platform access' do
     expect(adapter.authorized?(:unknown, team)).to be(false)
     expect(adapter.scope_collection(Setting.all)).to be_empty
   end
+
+  it 'disables automatic CSV and JSON exports rather than merely hiding their links' do
+    sign_in support
+    get '/admin/users.csv'
+    expect(response).to have_http_status(:not_acceptable)
+    get '/admin/auth_sessions.json'
+    expect(response).to have_http_status(:not_acceptable)
+  end
+
+  it 'audits administrator creation and privilege changes with a reason' do
+    sign_in operator
+    post '/admin/admin_users', params: { admin_user: { email: 'support-new@example.com', password: 'new-password',
+                                                       role: 'support', operation_reason: 'New support hire' } }
+    expect(response).to have_http_status(:found)
+    created = AdminUser.find_by!(email: 'support-new@example.com')
+    expect(AuditEvent.find_by!(action: 'admin_user.create').reason).to eq('New support hire')
+    patch "/admin/admin_users/#{created.id}", params: { admin_user: { role: 'super_admin',
+                                                                      operation_reason: 'On-call promotion' } }
+    expect(response).to have_http_status(:found)
+    expect(AuditEvent.find_by!(action: 'admin_user.update').metadata).to eq('role' => 'super_admin')
+  end
+
+  it 'rolls back administrator creation if its audit cannot be stored' do
+    sign_in operator
+    allow(AuditEvent).to receive(:record!).and_raise(ActiveRecord::StatementInvalid, 'Audit unavailable')
+    expect {
+      post '/admin/admin_users', params: { admin_user: { email: 'rollback@example.com', password: 'new-password',
+                                                         role: 'support', operation_reason: 'Audit test' } }
+    }.to raise_error(ActiveRecord::StatementInvalid)
+    expect(AdminUser.find_by(email: 'rollback@example.com')).to be_nil
+  end
 end
