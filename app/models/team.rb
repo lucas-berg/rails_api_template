@@ -20,6 +20,7 @@
 #
 class Team < ApplicationRecord
   LOCALES = %w[en zh-CN].freeze
+  ACCESSIBLE_STATUSES = %w[active suspended deletion_pending].freeze
 
   has_many :members, dependent: :restrict_with_error
   has_many :active_members, -> { active }, class_name: 'Member', dependent: :restrict_with_error, inverse_of: :team
@@ -40,6 +41,12 @@ class Team < ApplicationRecord
   validate :valid_timezone
 
   RANSACK_ATTRIBUTES = %w[id name slug status timezone locale created_at updated_at].freeze
+
+  scope :accessible, -> { where(status: ACCESSIBLE_STATUSES) }
+
+  def accessible?
+    ACCESSIBLE_STATUSES.include?(status)
+  end
 
   def flipper_id
     "Team;#{id}"

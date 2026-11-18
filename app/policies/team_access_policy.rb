@@ -14,6 +14,6 @@ class TeamAccessPolicy
   end
 
   def membership
-    @team.active_members.find_by(user_id: @user.id) if verified_user?
+    @team.active_members.find_by(user_id: @user.id) if verified_user? && @team.accessible?
   end
 end

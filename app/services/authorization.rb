@@ -35,6 +35,6 @@ module Authorization
   def self.team_scope(actor)
     return Team.none unless actor.is_a?(User) && actor.active_for_authentication? && actor.confirmed?
 
-    actor.teams
+    actor.teams.accessible
   end
 end

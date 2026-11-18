@@ -29,7 +29,7 @@ class DocumentPolicy
   end
 
   def membership
-    return unless @user&.active_for_authentication? && @user.confirmed?
+    return unless @team.accessible? && @user&.active_for_authentication? && @user.confirmed?
     return @membership if defined?(@membership)
 
     @membership = @team.active_members.find_by(user_id: @user.id)
