@@ -2,7 +2,7 @@
 
 [![Github Actions CI](https://github.com/tianlu1677/rails_api_template/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/tianlu1677/rails_api_template/actions)
 
-Rails API Base is a production-ready boilerplate project for JSON RESTful APIs. It follows community best practices in terms of standards, security, and maintainability, integrating a comprehensive suite of testing and code quality tools. Built on Rails 8.1 and Ruby 3.3.11.
+Rails API Base is a production-ready boilerplate project for JSON RESTful APIs. It follows community best practices in terms of standards, security, and maintainability, integrating a comprehensive suite of testing and code quality tools. Built on Rails 8.1 and Ruby 3.3.13.
 
 The template includes a plug-and-play Administration console powered by [ActiveAdmin](https://github.com/activeadmin/activeadmin), background job processing with [GoodJob](https://github.com/bensheldon/good_job), and feature flag management via [Flipper](https://github.com/jnunemaker/flipper).
 
@@ -58,8 +58,8 @@ This template comes with:
 
 1. Clone this repo
 1. Install PostgreSQL (if not already installed)
-1. Install Node.js v22+ (version specified in `package.json` engines)
-1. Install Yarn 4.4+ by running `corepack enable` (Corepack is included in modern Node.js)
+1. Install the Node.js version in `.nvmrc` (22.x LTS)
+1. Run `corepack enable` to use the Yarn version pinned in `package.json`
 1. Run the bootstrap script with your project name:
    ```bash
    ./bin/bootstrap.sh --name=my_awesome_project
@@ -210,7 +210,7 @@ To illustrate, `bin/rails console` will run the console in the docker container 
 
 ### Storage & Email
 - [Active Storage](https://guides.rubyonrails.org/active_storage_overview.html) - Local file storage
-- [SendGrid](https://github.com/sendgrid/sendgrid-ruby) - Email delivery service
+- Action Mailer delivers email through SendGrid SMTP.
 
 ## Getting Started with Your Project
 

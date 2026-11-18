@@ -4,18 +4,18 @@
   "engines": {
     "node": "^22.0.0"
   },
-  "packageManager": "yarn@4.4.1",
+  "packageManager": "yarn@4.18.1",
   "dependencies": {
     "@activeadmin/activeadmin": "3.5.2",
-    "@fortawesome/fontawesome-free": "7.1.0",
+    "@fortawesome/fontawesome-free": "7.3.1",
     "@hotwired/stimulus": "^3.2.2",
-    "@hotwired/turbo-rails": "^8.0.18",
+    "@hotwired/turbo-rails": "^8.0.23",
     "arctic_admin": "4.4.1",
-    "esbuild": "0.25.11",
-    "jquery": "3.7.1",
-    "jquery-ui": "1.14.1",
+    "esbuild": "0.28.2",
+    "jquery": "4.1.0",
+    "jquery-ui": "1.14.2",
     "jquery-ujs": "1.2.3",
-    "sass": "^1.93.2"
+    "sass": "^1.108.2"
   },
   "scripts": {
     "build": "yarn build:js && yarn build:css",
@@ -23,6 +23,14 @@
     "build:css": "sass ./app/assets/stylesheets:./app/assets/builds --no-source-map --load-path=node_modules"
   },
   "devDependencies": {
-    "daisyui": "^5.7.42"
+    "daisyui": "^5.8.1"
+  },
+  "dependenciesMeta": {
+    "@parcel/watcher": {
+      "built": true
+    },
+    "esbuild": {
+      "built": true
+    }
   }
 }

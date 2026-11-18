@@ -1,5 +1,5 @@
-ARG RUBY_VERSION=3.3.11
-ARG NODE_VERSION=22.7.0
+ARG RUBY_VERSION=3.3.13
+ARG NODE_VERSION=22.23.5
 
 # Use Node image so we can pull the binaries from here.
 FROM node:$NODE_VERSION AS node
@@ -41,7 +41,7 @@ COPY --link Gemfile Gemfile.lock package.json yarn.lock .yarnrc.yml .ruby-versio
 
 RUN corepack enable
 RUN gem install bundler && bundle install -j 4
-RUN yarn install --mode=update-lockfile && \
+RUN yarn install --immutable && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
 # Copy application code

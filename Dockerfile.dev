@@ -1,5 +1,5 @@
-ARG RUBY_VERSION=3.3.11
-ARG NODE_VERSION=22.7.0
+ARG RUBY_VERSION=3.3.13
+ARG NODE_VERSION=22.23.5
 
 # Use Node image so we can pull the binaries from here.
 FROM node:$NODE_VERSION AS node
@@ -32,7 +32,7 @@ RUN gem install foreman bundler
 COPY --link package.json yarn.lock .yarnrc.yml ./
 
 RUN corepack enable
-RUN yarn install --mode=update-lockfile && yarn cache clean
+RUN yarn install --immutable && yarn cache clean
 
 COPY --link Gemfile Gemfile.lock .ruby-version ./
 RUN bundle install -j 4
