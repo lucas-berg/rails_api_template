@@ -1,9 +1,5 @@
-# 账号与团队删除
+# 删除生命周期（已移出范围）
 
-保留删除申请、七天冷静期、取消、不可逆阶段、匿名化、失败重试及独立台账重放。业务数据导出和通用导入不在当前范围。
+整体移除 DeletionRequest、DeletionTombstone、冷静期、申请与取消、删除任务、重试、完成通知和台账恢复工具。当前模板不提供账号或团队删除接口，`DELETE /users` 也关闭。
 
-删除使用 Pundit 权限检查，唯一 owner 必须先转移所有权；任务重查权限和状态。删除阶段简化为 requested → ledger → records → completed，移除文件及导出清理。
-
-接口保留 POST /api/v1/user/deletion_request、POST /api/v1/teams/:team_id/deletion_request、GET/DELETE /api/v1/deletion_requests/:id；DELETE /users 接入同一申请服务。
-
-恢复工具 data:deletions:export / replay 处理独立删除台账，不是业务导出。详细操作和保留周期见 [运行说明](../doc/saas-data-lifecycle.md)。
+保留历史已删除账号和团队的访问限制，保留普通暂停/恢复与审计功能。迁移边界见 [删除模块移除说明](../doc/saas-data-lifecycle.md)，执行顺序见 [五步计划](../doc/saas-implementation-plan.md)。
