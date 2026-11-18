@@ -1,38 +1,42 @@
 # 附件上传与文件管理
 
-- 优先级：P1（文件型产品为 P0）
-- 当前基础：已有 Active Storage 表和依赖，业务权限待实现
-- 文档状态：设计草案，尚未按本文实现与验收
-- 依赖：02、03、06。
+- 优先级：P1；涉及文件的产品为 P0。
+- 当前状态：私有 Active Storage 文件、受控上传、内容类型验证、授权下载/图片预览、头像和可恢复清理已实现。
+- 依赖：02、03、10、14；无商业存储配额前置。
 
-## 需求
+## 数据与授权
 
-- 支持上传、授权下载、删除和容量展示；限制大小、类型及所属资源。
-- 私有文件默认不可匿名访问；删除业务对象后按保留规则清理附件。
-- 文件上传消耗配额，未完成上传可回收。
+`Document(team_id, uploader_id, status, original_filename, byte_size, verified_content_type, ...)` 是业务授权载体，关联私有 Active Storage file。状态为 uploading/processing/ready/rejected/deleting/deleted/purge_failed。
 
-## 设计
+- 有效团队成员可读；viewer 不可上传/修改。member 可上传、完成自己的上传并删除自己的文件；owner/admin 可删除团队文件。
+- 上传为服务端接收 multipart，不接受任意 blob signed_id，不提供浏览器直传。默认 Active Storage blob 路由禁用，不能绕过业务授权。
+- 仅接受 PNG、JPEG、PDF，默认最大 10 MiB（MAX_UPLOAD_BYTES 可配置，代码上限 100 MiB）。这是运行保护，不是商业用量或配额。
+- 完成上传后异步检查实际大小与内容类型，未 ready 的文件不能下载。当前没有防病毒引擎，类型验证不能称为病毒扫描。
+- 下载每次检查成员与资源权限，使用私有、不缓存的业务响应。仅验证通过的图片支持 inline 预览，PDF 以附件下载；提供 nosniff 和受限内容安全策略。
 
-- 使用 Active Storage 保存文件，增加 `Document(organization_id, uploaded_by_id, status, scan_status)` 作为业务授权载体，关联附件。
-- `POST .../uploads` 发起受限上传，`POST .../uploads/:id/complete` 校验完成，`GET .../files/:id/download` 鉴权后给短期下载地址，`DELETE .../files/:id` 申请删除。
-- blob signed_id 不等于租户权限；绑定时校验上传记录、租户、所有者、实际大小和类型，防止跨租户绑定。
-- 私有存储；受保护文件不可通过默认公开 blob 路由绕过业务控制器，实施时禁用或替换相应默认路由。
-- 文件先隔离、扫描通过再可下载；危险内容以附件形式下载，不在主站域内执行。总配额以实际存储字节结算。
+## 实际接口
 
-## 实现步骤
+| 接口 | 行为 |
+| --- | --- |
+| `POST .../uploads` | multipart file，返回 Document，201 |
+| `POST .../uploads/:id/complete` | 申请内容验证，通常 202；已 ready 则返回当前状态 |
+| `GET .../files`、`GET .../files/:id` | 分页文件目录和状态 |
+| `GET .../files/:id/download` | 授权后读取私有文件 |
+| `GET .../files/:id/preview` | 仅 ready 图片可预览 |
+| `DELETE .../files/:id` | 标记删除并异步清理，204 |
+| `GET/PATCH/PUT/DELETE .../avatar` | 管理本人头像引用，只能绑定本人在该团队上传的 ready 图片 |
 
-1. 配置存储服务、授权路由和租户业务模型；定义类型与体积白名单。
-2. 实现配额预留、完成校验、扫描任务、授权下载和异步 purge。
-3. 定时清理过期未绑定上传；删除与容量释放幂等，清理前再次确认无合法引用。
+`...` 为 `/api/v1/teams/:team_id`。返回字段是业务元数据，不暴露 blob key 或可匿名使用的下载链接。
 
-## 验收标准
+## 清理与失败恢复
 
-- [ ] 跨租户 ID、signed_id、默认 blob URL 均无法绕过授权。
-- [ ] 超大、伪造类型、未扫描文件被拒绝或隔离。
-- [ ] 上传中断与重复删除不造成配额永久占用或重复释放。
+- 上传 1 小时未完成会回收；超过 10 分钟的验证/清理任务可被扫描恢复。
+- 删除首先撤销可访问状态和头像引用，再删除远端实际字节，成功后才移除 blob 元数据；存储失败保留 key 以便重试。
+- 清理达到重试预算后进入 purge_failed，超级管理员提供原因后可重新启动。团队/账号删除必须确认文件实际清理成功，不能只认为 Job 已返回就完成。
+- 账号/团队生命周期最终会清理 Document 元数据；常规文件删除可保留删除状态用于查询和审计。
 
-## 实施前确认
+## 验证与扩展
 
-- 按 [统一架构约定](00-architecture.md) 核对数据归属、权限、幂等及兼容性。
-- 将涉及的产品参数、供应商选择和历史数据处理写入本模块的决策记录；本文默认值可以修改，但需同步依赖模块。
-- 开工后补充实际变更文件、迁移结果、测试证据及上线/回滚记录；完成验收后才将状态改为已实现。
+[文件请求测试](../spec/requests/api/v1/files_spec.rb)、[文件策略](../spec/policies/document_policy_spec.rb)、[验证任务](../spec/jobs/verify_document_job_spec.rb) 和 [清理任务](../spec/jobs/purge_document_job_spec.rb) 覆盖跨团队、signed_id、默认 blob 地址、伪造类型、非 ready 下载、存储失败和重复清理；并发清理有独立连接测试。
+
+防病毒供应商、图片变换、分片/直传、公共资源分发和存储商业配额是后续扩展。生产存储服务和访问控制需按 [运行手册](../doc/saas-operations.md) 独立验证。

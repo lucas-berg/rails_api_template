@@ -1,42 +1,47 @@
 # 成员、邀请与权限
 
-- 优先级：P0
-- 当前基础：待实现
-- 文档状态：设计草案，尚未按本文实现与验收
-- 依赖：01、02；邀请邮件依赖 07。
+- 优先级：P0。
+- 当前状态：固定四角色、邀请闭环和所有权转移已实现。
+- 依赖：01、02、07；不依赖商业席位/配额。
 
-## 需求
+## 权限与模型
 
-- 组织可邀请成员、撤销邀请、调整角色、移除成员和转移所有权。
-- 默认角色为 owner、admin、member、viewer；用户不能提升自己的权限。
-- 至少保留一位 owner；邀请接受前不取得业务权限。
+`Member(team_id, user_id, role, status)` 对 team_id/user_id 唯一，status 为 active/removed。角色只属于成员关系，不放在全局 User 或长期 JWT。
 
-## 设计
+| 角色 | 当前权限 |
+| --- | --- |
+| owner | 管理团队、成员和可授予角色；转移所有权；申请团队删除；管理自己的导出 |
+| admin | 修改团队设置；仅邀请/调整/移除 member、viewer；查询审计、管理自己的导出 |
+| member | 读取团队目录；文件等业务写入按资源策略执行 |
+| viewer | 读取团队目录及允许的业务数据，不执行业务写入 |
 
-- `Membership` 对 `(organization_id, user_id)` 建唯一索引；角色属于成员关系，不能放在全局 User 上。
-- `Invitation(organization_id, normalized_email, role, token_digest, expires_at, accepted_at, revoked_at, invited_by_id)`；每个组织每个邮箱至多一个有效待处理邀请。
-- owner 可管理账单、所有权和组织删除；admin 管理普通成员与业务资源；member 读写业务资源；viewer 只读。admin 不得授予 owner、管理 owner 或提升自身。
-- 使用统一 Policy 对 action 和 scope 鉴权，默认拒绝；前端隐藏按钮仅用于体验。
-- 拟新增 `GET .../members`、`PATCH/DELETE .../members/:id`、`POST .../invitations`、`DELETE .../invitations/:id`、`POST /api/v1/invitations/accept`、`POST .../ownership_transfer`；新增成员仅经邀请接受，不开放直接创建成员的公共接口。
-- 接受邀请要求登录并持有已验证的目标邮箱；锁定邀请及组织配额记录，事务内创建成员并消耗席位。
+普通 Ruby `TeamPolicy`、`MemberPolicy`、`InvitationPolicy` 和集中 `Authorization` 默认拒绝未知动作，**不使用 Pundit**。admin 不得管理 admin/owner 或提升自己；直接角色修改不能替代专门的所有权转移。
 
-## 实现步骤
+## 邀请与所有权
 
-1. 建立固定权限矩阵和 Policy 类；覆盖所有租户控制器、导出及后台入口。
-2. 实现邀请发送、过期、撤销、重发；重发轮换 Token，使旧链接失效。
-3. 统一以组织行锁串行处理移除 owner、角色变更和所有权转移，阻止并发删除最后 owner。
-4. 权限变更立即失效权限缓存；移除成员不删除该用户及其他组织成员关系。
-5. 席位不足时保留邀请待处理并返回明确错误，允许升级后重新接受。
+- Invitation 保存 normalized_email、role、SHA-256 token_digest、expires_at、accepted_at、revoked_at、invited_by_id；有效期 **7 天**。明文令牌仅作为加密邮件 outbox 的临时内容。
+- 邀请邮箱规范化；每个团队邮箱至多一条待处理邀请。重发轮换令牌，旧链接失效；撤销后不能接受。
+- 接受者必须登录、邮箱已确认且与目标邮箱匹配。重复接受不重复成员，也不能重新激活已被移除的成员。
+- 团队行锁串行保护接受、角色变化、移除和转移；不得移除最后 owner。所有权只可转给已有有效成员，旧 owner 降为 admin。
+- 删除申请中的用户不能新增成员关系或成为新 owner；所有权目标与账号删除通过用户 advisory lock 协调。
+- 发送和重发在授权后使用团队级限流；这属于滥用保护，不是商业席位限制。
 
-## 验收标准
+## 实际接口
 
-- [ ] 每个角色的允许与拒绝路径都有请求测试。
-- [ ] 其他邮箱、过期、撤销、重复使用的邀请均无法新增成员。
-- [ ] 并发接受不会重复成员或超卖席位；并发移除不会留下无 owner 组织。
-- [ ] 成员移除后已有 JWT 不能继续访问该组织。
+| 接口 | 行为 |
+| --- | --- |
+| `GET .../members` | 有效成员目录 |
+| `PATCH/PUT/DELETE .../members/:id` | 调整角色或移除；没有公共直接创建 Member 接口 |
+| `GET/POST .../invitations` | 按可管理角色范围列出/创建邀请 |
+| `POST .../invitations/:id/resend` | 轮换令牌并重新投递 |
+| `DELETE .../invitations/:id` | 撤销邀请 |
+| `POST /api/v1/invitations/accept` | 登录用户提交 token 接受 |
+| `POST .../ownership_transfer` | 提交 member_id 转移所有权 |
 
-## 实施前确认
+`...` 为 `/api/v1/teams/:team_id`。另保留浏览器 `/invitations/accept` 页面，用于登录后接受邀请，不构成完整用户控制台。
 
-- 按 [统一架构约定](00-architecture.md) 核对数据归属、权限、幂等及兼容性。
-- 将涉及的产品参数、供应商选择和历史数据处理写入本模块的决策记录；本文默认值可以修改，但需同步依赖模块。
-- 开工后补充实际变更文件、迁移结果、测试证据及上线/回滚记录；完成验收后才将状态改为已实现。
+## 验证与扩展
+
+[成员测试](../spec/requests/api/v1/members_spec.rb)、[邀请测试](../spec/requests/api/v1/invitations_spec.rb) 覆盖角色边界、越权、错误邮箱、过期、撤销、令牌轮换、重复接受、成员移除后旧 JWT 失权和独立数据库连接的并发路径。业务变更、审计和邮件意图同事务回滚。
+
+自定义角色、批量成员导入、目录同步和席位配额未实现；相关设计见 06、15，均不是当前成员协作的必需依赖。

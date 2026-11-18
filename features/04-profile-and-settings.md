@@ -1,38 +1,33 @@
-# 用户资料与组织设置
+# 用户资料与团队设置
 
-- 优先级：P0
-- 当前基础：已有个人资料和全局 Setting 基础
-- 文档状态：设计草案，尚未按本文实现与验收
-- 依赖：01、02、03。
+- 优先级：P0。
+- 当前状态：个人资料、语言/时区、团队设置和私有头像接口已实现。
+- 依赖：01—03；头像依赖 08；通知偏好依赖 07。
 
-## 需求
+## 当前行为
 
-- 用户维护姓名、头像、语言、时区与通知偏好；组织管理员维护名称、品牌与默认偏好。
-- 普通用户不能读取平台密钥或修改全局配置。
-- 设置应有默认值、字段验证和明确生效范围。
+- 保留 `GET/PATCH/PUT /api/v1/user`，允许 username、first_name、last_name、email、current_password 及 preferences。邮箱变更校验当前密码，并在新邮箱确认前保留旧邮箱。
+- User.preferences 仅允许 locale/timezone；支持语言 en、zh-CN，时区必须被 Rails 识别。未知偏好字段和错误类型被拒绝。
+- Team 的 name、timezone、locale 是独立列，不使用不存在的 Team.settings JSON 容器；全局 Setting 不承载团队配置，也不向普通用户暴露平台秘密。
+- 有效展示偏好按用户显式值 → 团队默认 → en/UTC 解析，时间持久化仍为 UTC。偏好不能改变权限。
+- 资料更新锁定并重新检查用户状态，防止认证后延迟请求覆盖已匿名化的删除账号。
 
-## 设计
+## 接口
 
-- 复用 `GET/PUT /api/v1/user`；用户偏好可存 `preferences` JSONB，但只允许已定义的键和值类型。
-- 组织偏好放在 `Organization.settings`；当前 `Setting(key, value)` 是全局配置，不能直接用来承载多租户设置。
-- 设置优先级：用户显式偏好 → 组织默认 → 平台默认；安全与权限设置不能被用户偏好覆盖。
-- 拟新增 `GET/PATCH /api/v1/organizations/:organization_id/settings`，仅返回白名单字段；密钥存凭据管理系统或加密字段。
-- 时间存 UTC，展示按用户时区；金额使用最小货币单位整数加 currency，禁止浮点计算。
+| 接口 | 行为 |
+| --- | --- |
+| `GET/PATCH/PUT .../settings` | 查看白名单团队设置；owner/admin 可更新 |
+| `GET/PATCH/PUT /api/v1/notification_preferences` | 可选活动通知的站内/邮件偏好；安全通知不关闭 |
+| `GET/PATCH/PUT/DELETE .../avatar` | 查看、绑定或清除自己的头像引用；只能使用本团队本人上传并验证通过的图片 |
 
-## 实现步骤
+`...` 为 `/api/v1/teams/:team_id`。头像通过受保护文件下载/预览接口读取，不返回可绕过权限的公开 blob 地址。被移除成员不能继续读取原团队头像，删除文件也会清理对应头像引用。
 
-1. 定义设置 schema、默认值与允许修改的角色，区分普通配置与秘密。
-2. 扩展资料参数白名单和 JSON 响应；头像接入 08。
-3. 增加组织设置接口、缓存版本及变更审计；邮箱/密码修改仍走 01 安全流程。
+## 验证与实现位置
 
-## 验收标准
+[资料控制器](../app/controllers/api/v1/users_controller.rb)、[成员关联与偏好校验](../app/models/concerns/team_memberships.rb)、[团队设置控制器](../app/controllers/api/v1/team_settings_controller.rb) 和 [头像控制器](../app/controllers/api/v1/avatars_controller.rb) 实施字段白名单和权限。
 
-- [ ] 无权限用户无法修改组织设置或读取秘密。
-- [ ] 非法时区、未知字段和错误类型被拒绝。
-- [ ] 不同租户设置互不影响；默认值和覆盖顺序一致。
+[设置测试](../spec/requests/api/v1/settings_spec.rb)、[头像测试](../spec/requests/api/v1/avatars_spec.rb) 及 [资料删除并发保护测试](../spec/requests/api/v1/users_lifecycle_spec.rb) 覆盖非法偏好、跨团队访问、文件资格和删除状态。
 
-## 实施前确认
+## 后续扩展
 
-- 按 [统一架构约定](00-architecture.md) 核对数据归属、权限、幂等及兼容性。
-- 将涉及的产品参数、供应商选择和历史数据处理写入本模块的决策记录；本文默认值可以修改，但需同步依赖模块。
-- 开工后补充实际变更文件、迁移结果、测试证据及上线/回滚记录；完成验收后才将状态改为已实现。
+团队 Logo/品牌、自定义域名、任意自定义设置 schema 和付费配置未实现。新增字段必须独立定义默认值、修改角色及敏感性，不能直接开放整个 JSON 对象或全局 Setting。

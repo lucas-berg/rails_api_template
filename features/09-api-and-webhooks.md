@@ -2,20 +2,22 @@
 
 - 优先级：P2（集成型产品为 P0）
 - 当前基础：已有版本化 API、分页、搜索及文档工具
-- 文档状态：设计草案，尚未按本文实现与验收
+- 文档状态：后续扩展设计，未实现，不属于当前五步交付，也不是核心模块的前置依赖。
 - 依赖：02、03、06、14。
+
+当前已有面向登录用户的版本化业务 JSON API；本模块指服务身份、API Key 与对外 Webhook 集成，以下拟议接口尚未注册。
 
 ## 需求
 
-- 组织可创建、轮换和撤销 API Key，并限制用途、权限与有效期。
+- 团队可创建、轮换和撤销 API Key，并限制用途、权限与有效期。
 - 外部应用可订阅业务事件；投递失败可重试并查看记录。
 - API 有稳定错误码、分页、版本策略和速率限制。
 
 ## 设计
 
-- `ApiKey(organization_id, created_by_id, prefix, secret_digest, scopes, expires_at, revoked_at, last_used_at)`；明文仅创建时展示，日志只记 prefix。
-- Key 属于组织服务身份，权限为 key scopes 与组织策略/权益交集；默认创建者被移除时撤销其 key，如需独立服务账号另建显式归属。
-- `WebhookEndpoint(organization_id, url, encrypted_secret, event_types, status)` 和 `WebhookDelivery(endpoint_id, event_id, status, attempts, next_attempt_at, response_code)`，endpoint/event 唯一。
+- `ApiKey(team_id, created_by_id, prefix, secret_digest, scopes, expires_at, revoked_at, last_used_at)`；明文仅创建时展示，日志只记 prefix。
+- Key 属于团队服务身份，权限为 key scopes 与团队策略/权益交集；默认创建者被移除时撤销其 key，如需独立服务账号另建显式归属。
+- `WebhookEndpoint(team_id, url, encrypted_secret, event_types, status)` 和 `WebhookDelivery(endpoint_id, event_id, status, attempts, next_attempt_at, response_code)`，endpoint/event 唯一。
 - `POST/GET/DELETE .../api_keys`、`POST/GET/PATCH/DELETE .../webhook_endpoints`、`GET .../webhook_deliveries`、`POST .../webhook_deliveries/:id/retry`。
 - 事件含 event_id、type、version、occurred_at、data；用 timestamp + 原始正文做 HMAC 签名，接收方按 event_id 去重，提供签名与轮换说明。
 - 仅允许 HTTPS；在注册和每次投递时拒绝回环、私网、链路本地及元数据地址，覆盖 IPv4/IPv6、DNS 重绑定；禁用重定向并限制出站网络。
@@ -30,7 +32,7 @@
 
 ## 验收标准
 
-- [ ] 撤销、过期、权限不足与跨组织 Key 被拒绝。
+- [ ] 撤销、过期、权限不足与跨团队 Key 被拒绝。
 - [ ] Webhook 无法访问内部网络；地址变化和跳转也不能绕过限制。
 - [ ] 投递重试保持同一 event_id；签名可验证，秘密不出现在查询响应。
 - [ ] 高频调用得到 429 和 Retry-After，不阻塞正常租户。

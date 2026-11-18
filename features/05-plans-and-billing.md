@@ -2,7 +2,7 @@
 
 - 优先级：P0（收费产品）
 - 当前基础：待实现
-- 文档状态：设计草案，尚未按本文实现与验收
+- 文档状态：后续扩展设计，未实现，不属于当前五步交付，也不是核心模块的前置依赖。
 - 依赖：02、03、06、07；事件处理基础见架构约定。
 
 ## 需求
@@ -13,8 +13,8 @@
 
 ## 设计
 
-- 拟新增 `Plan(code, version, entitlements)`、`Price(plan_id, currency, amount_minor, interval, provider_price_id)`、`BillingAccount(organization_id, provider, external_customer_id)`、`Subscription(organization_id, price_id, provider_subscription_id, status, current_period_end, trial_ends_at, cancel_at_period_end)`。
-- 套餐价格版本化，历史订阅引用原版本；每组织仅一个当前主订阅，用数据库约束防止并发重复创建。
+- 拟新增 `Plan(code, version, entitlements)`、`Price(plan_id, currency, amount_minor, interval, provider_price_id)`、`BillingAccount(team_id, provider, external_customer_id)`、`Subscription(team_id, price_id, provider_subscription_id, status, current_period_end, trial_ends_at, cancel_at_period_end)`。
+- 套餐价格版本化，历史订阅引用原版本；每团队仅一个当前主订阅，用数据库约束防止并发重复创建。
 - 本地访问状态：trialing / active 可用；past_due 在明确宽限截止前保留原权益、之后只读；canceled / expired 回落免费权益；incomplete 不授予付费权限。保留渠道原始状态并单独映射。
 - 升级需渠道确认后生效，差价以渠道预览为准；降级和取消默认周期末生效。超额数据保留但限制新增，不自动删除。
 - 拟新增 `GET /api/v1/plans`、`GET .../subscription`、`POST .../billing/checkout`、`POST .../billing/portal`、`POST .../subscription/change`、`POST .../subscription/cancel`、`GET .../invoices`。

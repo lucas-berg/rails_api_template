@@ -2,17 +2,23 @@
 
 [![Github Actions CI](https://github.com/tianlu1677/rails_api_template/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/tianlu1677/rails_api_template/actions)
 
-Rails API Base is a production-ready boilerplate project for JSON RESTful APIs. It follows community best practices in terms of standards, security, and maintainability, integrating a comprehensive suite of testing and code quality tools. Built on Rails 8.1 and Ruby 3.3.13.
+Rails API Base is a boilerplate project for JSON RESTful APIs. It follows community best practices in terms of standards, security, and maintainability, integrating a comprehensive suite of testing and code quality tools. Built on Rails 8.1 and Ruby 3.3.13.
 
 The template includes a plug-and-play Administration console powered by [ActiveAdmin](https://github.com/activeadmin/activeadmin), background job processing with [GoodJob](https://github.com/bensheldon/good_job), and feature flag management via [Flipper](https://github.com/jnunemaker/flipper).
+
+The SaaS foundation uses **Team** as the tenant and **Member** for team roles, with explicit Ruby policies and no Pundit. The [five-step implementation plan](doc/saas-implementation-plan.md), [operations guide](doc/saas-operations.md), and [data lifecycle runbook](doc/saas-data-lifecycle.md) and [validation record](doc/saas-validation.md) describe the supported flows and recovery procedures. Billing, commercial quotas, API keys, webhooks, enterprise SSO, and business data imports remain outside this implementation.
 
 ## Features
 
 This template comes with:
 
 ### Database Schema
-- **Users** - JWT-authenticated users with profile management
-- **Admin Users** - Separate admin accounts for administrative access
+- **Users and Auth Sessions** - Verified email, reconfirmation, profiles, revocable JWT sessions with a fixed 90-day lifetime
+- **Teams, Members and Invitations** - Explicit team scope, owner/admin/member/viewer roles, seven-day invitations and protected ownership transfers
+- **Admin Users and Audit Events** - Separate super_admin/support access and transactional audit records
+- **Mail Deliveries and Notifications** - Transactional mail outbox, mandatory security messages, optional activity preferences, retryable delivery and en/zh-CN text
+- **Documents** - Private verified PNG/JPEG/PDF uploads, authorized downloads/previews and avatars
+- **Data Exports and Deletion Requests** - Private JSON exports, delayed deletion, resumable cleanup and an independent deletion ledger
 - **Settings** - Key-value configuration store
 - **Feature Flags** - Flipper feature flag system
 - **Background Jobs** - GoodJob queue tables
@@ -23,26 +29,45 @@ This template comes with:
   - Sign in with user credentials (`POST /users/sign_in`)
   - Sign out (`DELETE /users/sign_out`)
   - Reset password (`POST /users/password`, `PUT /users/password`)
+  - Confirm email / resend confirmation (`GET/POST /users/confirmation`)
+  - List and revoke API sessions (`GET /api/v1/auth_sessions`, `DELETE /api/v1/auth_sessions/:id`)
 - **User Profile**
   - Get current user (`GET /api/v1/user`)
   - Update current user (`PUT /api/v1/user`)
 - **Settings**
   - Check minimum app version (`GET /api/v1/settings/must_update`)
+- **Team Collaboration**
+  - Create/list teams (`GET/POST /api/v1/teams`)
+  - Team members, invitations, settings, ownership transfers and audit events under `/api/v1/teams/:team_id`
+  - Accept invitations (`POST /api/v1/invitations/accept`), with a minimal browser confirmation page at `/invitations/accept`
+- **Internal Features**
+  - Team notifications, uploads, files, avatar, dashboard and onboarding under `/api/v1/teams/:team_id`
+  - Own security notifications and notification preferences under `/api/v1`
+- **Data Lifecycle**
+  - Request/list/view/download exports under `/api/v1/teams/:team_id/exports`
+  - Request account or team deletion, query/cancel own requests under `/api/v1/deletion_requests/:id`
+  - `DELETE /users` schedules account deletion and requires `current_password`; it does not immediately destroy the account
 - **Health Check**
   - API status (`GET /api/v1/status`)
+  - PostgreSQL and Redis readiness (`GET /api/v1/ready`)
+
+New SaaS endpoints return `{ data, meta }` and structured errors with `request_id`; existing authentication/profile response envelopes are preserved. The full contract is generated in [doc/openapi.yaml](doc/openapi.yaml).
 
 ### Administration Panel
 - ActiveAdmin dashboard with Arctic Admin theme
 - User management interface
 - Admin user management
-- Feature flag management UI (`/admin/feature-flags`)
-- Background job monitoring (`/admin/jobs` - GoodJob dashboard)
+- Read-only support access; reasoned and audited super_admin operations
+- Sensitive tokens, encrypted mail payloads and storage keys are excluded; automatic CSV/JSON admin exports are disabled
+- Feature flag management UI (`/admin/feature-flags`, super_admin only)
+- Background job monitoring (`/admin/jobs` - GoodJob dashboard, super_admin only)
 
 ### Infrastructure & Tools
 - **Authentication**: Devise + Devise-JWT for token-based auth
 - **HTML authentication**: Turbo-powered Devise pages with Stimulus interactions
 - **API Documentation**: OpenAPI/Swagger via Rswag
 - **Background Jobs**: GoodJob for async processing
+- **Rate Limits**: Redis shared counters across application instances
 - **Feature Flags**: Flipper with ActiveRecord adapter
 - **Pagination**: Pagy (high-performance pagination)
 - **Search/Filtering**: Ransack for query building
@@ -56,6 +81,7 @@ This template comes with:
 
 1. Clone this repo
 1. Install PostgreSQL (if not already installed)
+1. Install/start Redis and set `RATE_LIMIT_REDIS_URL` from `.env.sample`
 1. Install the Node.js version in `.nvmrc` (22.x LTS)
 1. Run `corepack enable` to use the Yarn version pinned in `package.json`
 1. Run the bootstrap script with your project name:
@@ -77,8 +103,10 @@ This template comes with:
    - **API**: http://localhost:3000/api/v1/status
    - **Admin Panel**: http://localhost:3000/admin
    - **API Documentation**: http://localhost:3000/api-docs
-   - **Feature Flags**: http://localhost:3000/admin/feature-flags (requires admin login)
-   - **Background Jobs**: http://localhost:3000/admin/jobs (requires admin login)
+   - **Feature Flags**: http://localhost:3000/admin/feature-flags (requires super_admin)
+   - **Background Jobs**: http://localhost:3000/admin/jobs (requires super_admin)
+
+New accounts must confirm their email before signing in. Configure `APP_PUBLIC_URL`, `DEFAULT_EMAIL_SENDER` and SMTP before using confirmation or invitation emails. Production requires a separate GoodJob worker, persistent private file storage, and `DELETION_LEDGER_PATH` on independently backed-up storage; see the runbooks linked above.
 
 ## How to use with Docker
 

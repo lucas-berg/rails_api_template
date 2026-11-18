@@ -2,19 +2,19 @@
 
 - 优先级：P0（存在套餐限制时）
 - 当前基础：待实现；Flipper 不等于套餐权益
-- 文档状态：设计草案，尚未按本文实现与验收
+- 文档状态：后续扩展设计，未实现，不属于当前五步交付，也不是核心模块的前置依赖。
 - 依赖：02、03；付费权益由 05 更新，免费权益可先独立实现。
 
 ## 需求
 
-- 按组织限制成员数、存储量、项目数或 API 用量；可查询剩余额度和重置时间。
+- 按团队限制成员数、存储量、项目数或 API 用量；可查询剩余额度和重置时间。
 - 区分功能是否可用、资源数量上限、周期消耗额度；并发请求也不能越过硬限制。
 - 到期降级后保留既有数据，并明确可读、不可新增等行为。
 
 ## 设计
 
 - `EntitlementResolver` 根据套餐版本、订阅状态和有期限的人工覆盖计算权益；初期先提供静态免费套餐。
-- 拟新增 `UsageEvent(organization_id, metric, idempotency_key, quantity, occurred_at)` 与 `UsageCounter(organization_id, metric, period_start, period_end, used, reserved)`；事件与计数器分别建业务唯一索引。
+- 拟新增 `UsageEvent(team_id, metric, idempotency_key, quantity, occurred_at)` 与 `UsageCounter(team_id, metric, period_start, period_end, used, reserved)`；事件与计数器分别建业务唯一索引。
 - 席位/存储是当前存量，资源删除后释放；API/AI 调用是周期累计，失败是否计量按指标单独定义。
 - 并发操作使用行锁或原子条件更新执行预留 → 成功结算 / 失败释放；外部耗时任务有预留到期回收和账实核对。
 - 周期默认 UTC 自然月；若采用订阅账期需显式配置并保存边界，不能因升级隐式清零。无限额用显式 unlimited 表达。

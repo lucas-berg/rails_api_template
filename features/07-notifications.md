@@ -1,38 +1,40 @@
 # 邮件、站内通知与偏好
 
-- 优先级：P1；认证/邀请/支付邮件为 P0
-- 当前基础：已有 Mailer、GoodJob 和邮件依赖
-- 文档状态：设计草案，尚未按本文实现与验收
-- 依赖：01；租户通知依赖 02、03。
+- 优先级：认证/邀请事务邮件 P0，活动通知 P1。
+- 当前状态：MailDelivery outbox、固定事件通知、站内/邮件投递、偏好和失败恢复已实现。
+- 依赖：01；团队活动依赖 02、03。不包含支付通知前置。
 
-## 需求
+## 当前模型与投递
 
-- 支持验证邮箱、邀请、支付失败等事务邮件，以及产品公告和站内消息。
-- 用户可标记已读、设置可选通知偏好；安全与账单通知单独定义接收规则。
-- 发送失败可追踪、重试，重复事件不应重复创建通知。
+- MailDelivery 保存投递种类、事件键、状态、次数、租约和加密临时内容。确认、重置和邀请令牌不作为明文任务参数；Job 只接收投递记录 ID。
+- 业务状态和邮件意图同事务，提交后投递；扫描任务补投遗漏任务。邀请发送前复核有效期、令牌、团队状态和邀请人的管理权限，旧邀请邮件会跳过。
+- `Notification(user_id, team_id, event_key, kind, category, visible_at, read_at)` 不保存任意 payload；个人安全通知 team_id 为空。
+- NotificationDelivery 记录渠道状态、重试和租约；事件键、接收人和渠道唯一约束防重复业务记录。发送前重查用户状态、团队状态和成员有效性。
+- 团队删除申请/取消通知允许在 active/suspended/deletion_pending 状态投递，仍要求有效成员；其他团队活动只在 active 状态投递。
+- 邮件发送采用有限重试、过期租约恢复和后台失败重试。SMTP 已发送但状态确认失败时可能重复投递，不能承诺绝对只发一次。
 
-## 设计
+## 事件与偏好
 
-- 拟新增 `Notification(organization_id, user_id, event_key, kind, payload, read_at)` 与 `NotificationDelivery(notification_id, channel, status, attempts, provider_message_id)`；平台级安全通知允许 organization_id 为空并使用独立查询规则。
-- 唯一键覆盖接收人、事件和渠道；通知事件通过事务 outbox 在业务提交后投递。
-- `GET .../notifications`、`PATCH .../notifications/:id/read`、`PATCH /api/v1/user/notification_preferences`；平台级通知通过用户专用入口查询。
-- 发送前重查成员有效性；邮件模板支持语言、纯文本和受控链接，不暴露敏感业务内容。
-- 退订只影响可选营销/公告；处理退信、投诉和渠道限流。外部邮件系统未提供幂等能力时不能承诺绝对只发送一次。
+当前白名单包含密码修改、账号暂停/恢复、邀请接受、成员角色变更、所有权转移、导出就绪、账号/团队删除申请与取消及团队删除完成。账号删除完成使用独立加密收件地址发送完成邮件，见 12。
 
-## 实现步骤
+- activity_in_app 默认 true，activity_email 默认 false；客户端只能提交布尔值。
+- security_in_app/security_email 固定 true，不受活动偏好关闭影响。
+- 通知文案按用户语言 → 团队语言 → en 回退，支持 en、zh-CN；邮件提供纯文本和受控链接。
 
-1. 先实现 P0 事务邮件模板和发送任务，再扩展站内通知及偏好。
-2. 增加 outbox 分发、按渠道重试、失败隔离和人工重发入口。
-3. 接入渠道送达回执验签与去重；落库元数据并按周期清理。
+## 实际接口
 
-## 验收标准
+| 接口 | 行为 |
+| --- | --- |
+| `GET .../notifications` | 当前用户在该团队的可见通知 |
+| `POST .../notifications/:id/read` | 仅本人消息标记已读，重复调用幂等 |
+| `GET /api/v1/security_notifications` | 本人的个人安全通知 |
+| `POST /api/v1/security_notifications/:id/read` | 个人安全通知已读 |
+| `GET/PATCH/PUT /api/v1/notification_preferences` | 查看及更新活动通知偏好 |
 
-- [ ] 回滚的业务不发送通知；重试不重复创建站内消息。
-- [ ] 用户只能读取自己的消息，被移除成员不收到新组织信息。
-- [ ] 偏好、语言回退、退信、渠道故障和重试均有覆盖。
+`...` 为 `/api/v1/teams/:team_id`。普通用户不能通过这些入口创建任意通知或读取他人的消息。
 
-## 实施前确认
+## 验证与后续扩展
 
-- 按 [统一架构约定](00-architecture.md) 核对数据归属、权限、幂等及兼容性。
-- 将涉及的产品参数、供应商选择和历史数据处理写入本模块的决策记录；本文默认值可以修改，但需同步依赖模块。
-- 开工后补充实际变更文件、迁移结果、测试证据及上线/回滚记录；完成验收后才将状态改为已实现。
+[通知请求测试](../spec/requests/api/v1/notifications_spec.rb)、[发布服务测试](../spec/services/notifications)、[邮件任务测试](../spec/jobs/send_mail_delivery_job_spec.rb) 和 [通知投递测试](../spec/jobs/send_notification_delivery_job_spec.rb) 覆盖事务回滚、去重、偏好、失效成员、过期租约、失败重试和语言回退。
+
+营销公告、渠道送达回执、退信/投诉自动处理和支付事件未实现。部署方仍需验证实际 SMTP 送达、域名及渠道限制；配置见 [运行手册](../doc/saas-operations.md)。
