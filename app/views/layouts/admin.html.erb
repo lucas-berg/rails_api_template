@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for?(:title) ? "#{yield(:title)} · Administration" : "Administration" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag 'admin', 'data-turbo-track': 'reload' %>
+  </head>
+  <body class="admin-body">
+    <% if admin_user_signed_in? %>
+      <a class="admin-skip" href="#main-content">Skip to content</a>
+      <aside class="admin-sidebar">
+        <%= link_to admin_root_path, class: 'admin-brand' do %><span class="admin-brand__mark">A</span><span>Administration<small>Workspace operations</small></span><% end %>
+        <nav class="admin-nav" aria-label="Administration"><% admin_navigation.each do |label, path| %><%= admin_navigation_link(label, path) %><% end %></nav>
+        <% if policy([:admin, :dashboard]).manage_tools? %>
+          <div class="admin-tools"><span class="admin-eyebrow">Operations tools</span><%= link_to 'Background jobs ↗', '/admin/jobs' %><%= link_to 'Feature flags ↗', '/admin/feature-flags' %></div>
+        <% end %>
+        <div class="admin-profile"><strong><%= current_admin_user.email %></strong><span><%= current_admin_user.role.humanize %></span><%= button_to 'Sign out', destroy_admin_user_session_path, method: :delete, class: 'admin-signout' %></div>
+      </aside>
+      <main class="admin-main" id="main-content"><%= render 'admin/shared/flash' %><%= yield %></main>
+    <% else %>
+      <main class="admin-auth" id="main-content"><div class="admin-auth__panel"><div class="admin-brand"><span class="admin-brand__mark">A</span><span>Administration<small>Workspace operations</small></span></div><%= render 'admin/shared/flash' %><%= yield %></div></main>
+    <% end %>
+  </body>
+</html>

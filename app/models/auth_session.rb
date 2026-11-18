@@ -30,7 +30,6 @@ class AuthSession < ApplicationRecord
   class InvalidCredentials < StandardError; end
 
   CONTROL_CHARACTERS = /[[:cntrl:]\p{Cf}]/
-  RANSACK_ATTRIBUTES = %w[id user_id expires_at revoked_at last_used_at created_at].freeze
 
   belongs_to :user
 
@@ -40,6 +39,14 @@ class AuthSession < ApplicationRecord
   validates :user_agent, length: { maximum: 256 }, format: { without: CONTROL_CHARACTERS }, allow_nil: true
 
   scope :active, -> { where(revoked_at: nil).where('expires_at > ?', Time.current) }
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[user_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
 
   def self.register!(user, payload, context: {})
     transaction do

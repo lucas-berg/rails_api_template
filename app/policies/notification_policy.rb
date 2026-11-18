@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
-class NotificationPolicy
-  def initialize(user, notification)
-    @user = user
-    @notification = notification
+class NotificationPolicy < ApplicationPolicy
+  def show?
+    verified_user? && record.readable_by?(user)
   end
 
-  def allowed?(action)
-    %i[read mark_read].include?(action) && @user&.active_for_authentication? && @notification.readable_by?(@user)
+  alias mark_read? show?
+
+  class Scope < ApplicationPolicy::Scope
+    def resolve
+      verified_user? ? scope.merge(Notification.visible_to(user)) : scope.none
+    end
   end
 end

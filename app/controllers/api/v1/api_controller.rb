@@ -6,6 +6,7 @@ module API
       include API::Concerns::ActAsAPIRequest
       include Pagy::Method
       include RequestContext
+      include Pundit::Authorization
 
       before_action :use_stateless_session
       before_action :authenticate_user!
@@ -14,11 +15,16 @@ module API
       rescue_from ActiveRecord::RecordNotFound,        with: :render_not_found
       rescue_from ActiveRecord::RecordInvalid,         with: :render_record_invalid
       rescue_from ActionController::ParameterMissing,  with: :render_parameter_missing
+      rescue_from Pundit::NotAuthorizedError, with: :render_forbidden
 
       private
 
       def set_current_user
         Current.user = current_user
+      end
+
+      def render_forbidden(exception)
+        render_error(exception, { message: 'You do not have permission to perform this action.' }, :forbidden)
       end
 
       def render_not_found(exception)

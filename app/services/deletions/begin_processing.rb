@@ -20,7 +20,7 @@ module Deletions
 
       # The irreversible decision is committed before external I/O; cancellation is no longer allowed.
       record_tombstone!
-      @deletion.update!(stage: 'files') if @deletion.stage == 'ledger'
+      @deletion.update!(stage: 'records') if @deletion.stage == 'ledger'
       true
     end
 

@@ -1,11 +1,16 @@
 # frozen_string_literal: true
 
-class InvitationPolicy < TeamAccessPolicy
-  def allowed?(action)
-    member = membership
-    return false unless member && @resource.team_id == @team.id
-    return false unless %i[read create resend revoke].include?(action)
+class InvitationPolicy < ApplicationPolicy
+  def create?
+    member = membership_for(record.team)
+    member&.owner? || (member&.admin? && %w[member viewer].include?(record.role)) || false
+  end
 
-    member.owner? || (member.admin? && %w[member viewer].include?(@resource.role))
+  alias show? create?
+  alias resend? create?
+  alias destroy? create?
+
+  def accept?
+    verified_user? && user.email == record.normalized_email
   end
 end

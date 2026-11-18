@@ -27,7 +27,6 @@ class Team < ApplicationRecord
   has_many :users, through: :active_members
   has_many :invitations, dependent: :restrict_with_error
   has_many :audit_events, dependent: :restrict_with_error
-  has_many :documents, dependent: :restrict_with_error
   has_many :notifications, dependent: :restrict_with_error
 
   enum :status, { active: 'active', suspended: 'suspended', deletion_pending: 'deletion_pending',
@@ -40,9 +39,15 @@ class Team < ApplicationRecord
   validates :locale, inclusion: { in: LOCALES }
   validate :valid_timezone
 
-  RANSACK_ATTRIBUTES = %w[id name slug status timezone locale created_at updated_at].freeze
-
   scope :accessible, -> { where(status: ACCESSIBLE_STATUSES) }
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id name status]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
 
   def accessible?
     ACCESSIBLE_STATUSES.include?(status)

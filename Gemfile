@@ -12,8 +12,6 @@ gem 'pghero', '~> 4.1'
 gem 'puma', '~> 8.1'
 
 # Frontend
-gem 'activeadmin', '~> 3.5'
-gem 'cssbundling-rails', '~> 1.4'
 gem 'jsbundling-rails', '~> 1.3'
 gem 'sprockets-rails', '~> 3.5', '>= 3.5.2'
 gem 'stimulus-rails', '~> 1.3'
@@ -23,6 +21,7 @@ gem 'turbo-rails', '~> 2.0'
 # Users
 gem 'devise', '~> 5.0'
 gem 'devise-jwt', '~> 0.13.0'
+gem 'pundit', '~> 2.5', '>= 2.5.2'
 
 # API
 gem 'jbuilder', '~> 2.15'
@@ -43,9 +42,6 @@ gem 'ruby_llm', '~> 2.2'
 # Monitoring
 gem 'newrelic_rpm', '~> 10.9'
 gem 'sentry-ruby', '~> 7.2'
-
-# Storage
-gem 'active_storage_base64', '~> 3.0.1'
 
 # Doc
 gem 'rswag-api', '~> 2.17.0'

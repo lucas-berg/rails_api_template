@@ -11,21 +11,9 @@ RSpec::OpenAPI.enable_example = false
 RSpec::OpenAPI.security_schemes = {
   'BearerAuth' => { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }
 }
-RSpec::OpenAPI.response_headers = %w[Authorization Location Retry-After Content-Disposition Cache-Control
-                                     X-Content-Type-Options Content-Security-Policy]
+RSpec::OpenAPI.response_headers = %w[Authorization Location Retry-After]
 
 RSpec::OpenAPI.post_process_hook = lambda do |_path, _records, spec|
-  # A downloaded JSON attachment is a binary response, not a string with object properties.
-  spec.fetch(:paths).each_value do |operations|
-    operations.each_value do |operation|
-      operation.fetch(:responses, {}).each_value do |response|
-        response.fetch(:content, {}).each_value do |content|
-          content[:schema] = { type: 'string', format: 'binary' } if content.dig(:schema, :format) == 'binary'
-        end
-      end
-    end
-  end
-
   # The generator omits all DELETE bodies; these two API actions require password confirmation.
   ['/users', '/api/v1/deletion_requests/{id}'].each do |path|
     operation = spec.dig(:paths, path.to_sym, :delete)

@@ -1,0 +1,13 @@
+<% content_for :title, "Notification ##{@notification.id}" %>
+<%= link_to '← Notifications', admin_notifications_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Notification #<%= @notification.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @notification.id.presence || "—" %></dd></div>
+  <div><dt>User id</dt><dd><%= @notification.user_id.presence || "—" %></dd></div>
+  <div><dt>Team id</dt><dd><%= @notification.team_id.presence || "—" %></dd></div>
+  <div><dt>Kind</dt><dd><%= @notification.kind.presence || "—" %></dd></div>
+  <div><dt>Category</dt><dd><%= @notification.category.presence || "—" %></dd></div>
+  <div><dt>Visible at</dt><dd><%= admin_time(@notification.visible_at) %></dd></div>
+  <div><dt>Read at</dt><dd><%= admin_time(@notification.read_at) %></dd></div>
+  <div><dt>Created at</dt><dd><%= admin_time(@notification.created_at) %></dd></div>
+</dl></section>

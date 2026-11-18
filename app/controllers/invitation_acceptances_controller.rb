@@ -3,8 +3,8 @@
 class InvitationAcceptancesController < ApplicationController
   before_action :authenticate_user!, only: :create
 
-  rescue_from Authorization::Forbidden, Collaboration::Conflict do |exception|
-    status = exception.is_a?(Authorization::Forbidden) ? :forbidden : :conflict
+  rescue_from Pundit::NotAuthorizedError, Collaboration::Conflict do |exception|
+    status = exception.is_a?(Pundit::NotAuthorizedError) ? :forbidden : :conflict
     render plain: exception.message, status:
   end
 
@@ -35,6 +35,6 @@ class InvitationAcceptancesController < ApplicationController
   end
 
   def matching_recipient?
-    current_user.confirmed? && current_user.email == @invitation.normalized_email
+    Pundit.policy!(current_user, @invitation).accept?
   end
 end

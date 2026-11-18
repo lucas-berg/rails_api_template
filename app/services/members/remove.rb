@@ -5,7 +5,7 @@ module Members
     def call(member_id)
       within_team do
         member = active_member!(member_id)
-        authorize!(:remove, member)
+        Pundit.authorize(actor, member, :destroy?)
         ensure_owner_retained!(member)
         member.update!(status: 'removed')
         audit!('member.removed', member)

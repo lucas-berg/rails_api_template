@@ -5,8 +5,9 @@ module API
     class SaasController < APIController
       skip_before_action :authenticate_user!
       before_action :authenticate_api_user!
+      after_action :verify_pundit_authorization
 
-      rescue_from Authorization::Forbidden, with: :render_forbidden
+      rescue_from Pundit::NotAuthorizedError, with: :render_forbidden
       rescue_from Collaboration::Conflict, with: :render_conflict
       rescue_from ActiveRecord::RecordNotUnique, with: :render_duplicate
       rescue_from ActionController::BadRequest, with: :render_bad_request
@@ -15,14 +16,14 @@ module API
 
       private
 
+      def verify_pundit_authorization
+        action_name == 'index' ? verify_policy_scoped : verify_authorized
+      end
+
       def authenticate_api_user!
         return if current_user&.active_for_authentication?
 
         api_error('unauthenticated', 'Sign in to continue', :unauthorized)
-      end
-
-      def authorize!(action, resource)
-        Authorization.authorize!(current_user, action, resource, team: Current.team)
       end
 
       def render_data(data, status: :ok, meta: {})

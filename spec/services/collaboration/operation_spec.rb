@@ -26,9 +26,9 @@ RSpec.describe Collaboration::Operation do
   end
 
   it 'denies unknown authorization actions and resources' do
-    expect(Authorization.allowed?(owner, :execute_arbitrary_code, team)).to be(false)
-    expect(Authorization.allowed?(owner, :read, owner)).to be(false)
-    expect(Authorization.allowed?(nil, :read, team)).to be(false)
+    expect { Pundit.authorize(owner, team, :destroy?) }.to raise_error(Pundit::NotAuthorizedError)
+    expect { Pundit.policy!(owner, Object.new) }.to raise_error(Pundit::NotDefinedError)
+    expect { Pundit.authorize(nil, team, :show?) }.to raise_error(Pundit::NotAuthorizedError)
   end
 
   it 'does not permit a service caller to operate on a foreign team member' do
@@ -49,6 +49,6 @@ RSpec.describe Collaboration::Operation do
     user = create(:user, confirmed_at: nil)
     Invitations::Create.new(actor: owner, team:).call(email: user.email)
     token = MailDelivery.where(kind: 'invitation').last.payload.fetch('token')
-    expect { Invitations::Accept.call(actor: user, token:) }.to raise_error(Authorization::Forbidden)
+    expect { Invitations::Accept.call(actor: user, token:) }.to raise_error(Pundit::NotAuthorizedError)
   end
 end

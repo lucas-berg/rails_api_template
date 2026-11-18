@@ -3,11 +3,15 @@
 module API
   module V1
     class UsersController < API::V1::APIController
+      after_action :verify_authorized
+
       def show
+        authorize current_user, :show?
         render 'api/v1/users/show'
       end
 
       def update
+        authorize current_user, :update?
         attributes = update_user_params
         current_user.with_lock do
           unless current_user.active_for_authentication?

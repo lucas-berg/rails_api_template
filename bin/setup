@@ -11,6 +11,6 @@ Dir.chdir(File.expand_path('..', __dir__)) do
   system('bin/bundle', 'check') || system('bin/bundle', 'install', exception: true)
   system('yarn', 'install', '--immutable', exception: true)
   system('yarn', 'build', exception: true)
-  system('bin/rails', 'db:prepare', 'tailwindcss:build', 'tailwindcss:build_users', exception: true)
+  system('bin/rails', 'db:prepare', 'tailwindcss:build', exception: true)
   exec 'bin/dev' unless ARGV.include?('--skip-server')
 end

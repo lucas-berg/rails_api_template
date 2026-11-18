@@ -31,19 +31,13 @@
 #  username               :string           default("")
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
-#  avatar_document_id     :bigint
 #
 # Indexes
 #
-#  index_users_on_avatar_document_id    (avatar_document_id)
 #  index_users_on_confirmation_token    (confirmation_token) UNIQUE
 #  index_users_on_email                 (email) UNIQUE
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #  index_users_on_uid_and_provider      (uid,provider) UNIQUE
-#
-# Foreign Keys
-#
-#  fk_rails_...  (avatar_document_id => documents.id) ON DELETE => nullify
 #
 
 class User < ApplicationRecord
@@ -53,22 +47,28 @@ class User < ApplicationRecord
          :recoverable, :trackable, :validatable, :confirmable, jwt_revocation_strategy: AuthSession
 
   include UserAuthentication
-  include TeamMemberships
 
-  belongs_to :avatar_document, class_name: 'Document', optional: true
+  has_many :members, dependent: :restrict_with_error
+  has_many :active_members, -> { active }, class_name: 'Member', dependent: :restrict_with_error, inverse_of: :user
+  has_many :teams, through: :active_members
   has_many :notifications, dependent: :restrict_with_error
   has_one :notification_preference, dependent: :restrict_with_error
 
   validates :uid, uniqueness: { scope: :provider }
+  validate :valid_preferences
 
   before_validation :init_uid
   before_update :sync_confirmed_uid
 
   PUBLIC_ATTRIBUTES = %w[id email first_name last_name username created_at updated_at provider uid].freeze
 
-  RANSACK_ATTRIBUTES = %w[id email first_name last_name username sign_in_count current_sign_in_at
-                          last_sign_in_at current_sign_in_ip last_sign_in_ip provider uid
-                          created_at updated_at].freeze
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id email username status]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
 
   def self.from_social_provider(provider, user_params)
     attributes = user_params.with_indifferent_access
@@ -89,7 +89,35 @@ class User < ApplicationRecord
     "#{first_name} #{last_name}"
   end
 
+  # A caller supplies its authorized team to resolve the preference hierarchy.
+  # :reek:ControlParameter
+  def effective_preferences(team: nil)
+    defaults = { 'locale' => team&.locale || 'en', 'timezone' => team&.timezone || 'UTC' }
+    defaults.merge(preferences)
+  end
+
   private
+
+  def valid_preferences
+    return errors.add(:preferences, 'must be an object') unless preferences.is_a?(Hash)
+
+    errors.add(:preferences, 'contains unknown fields') if (preferences.keys - %w[locale timezone]).any?
+    validate_preferred_locale
+    validate_preferred_timezone
+  end
+
+  def validate_preferred_locale
+    return unless preferences.key?('locale') && Team::LOCALES.exclude?(preferences['locale'])
+
+    errors.add(:preferences, 'locale is not supported')
+  end
+
+  def validate_preferred_timezone
+    return unless preferences.key?('timezone')
+
+    timezone = preferences['timezone']
+    errors.add(:preferences, 'timezone is not valid') unless timezone.is_a?(String) && ActiveSupport::TimeZone[timezone]
+  end
 
   def init_uid
     return unless provider == 'email'

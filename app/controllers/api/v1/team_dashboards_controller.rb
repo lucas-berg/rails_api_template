@@ -4,7 +4,7 @@ module API
   module V1
     class TeamDashboardsController < TeamContextController
       def show
-        authorize!(:read, @team)
+        authorize @team, :show?
         membership = @team.active_members.find_by!(user_id: current_user.id)
         render_data({ team: SaasPresenter.team(@team), role: membership.role, counts: counts(membership),
                       preferences: effective_preferences })
@@ -19,7 +19,6 @@ module API
       def counts(membership)
         result = {
           members: @team.active_members.count,
-          files: @team.documents.where(status: 'ready').count,
           unread_notifications: Notification.visible_to(current_user).where(team: @team, read_at: nil).count
         }
         result[:pending_invitations] = pending_invitations if membership.owner? || membership.admin?

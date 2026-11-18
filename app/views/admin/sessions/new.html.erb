@@ -1,0 +1,9 @@
+<% content_for :title, 'Sign in' %>
+<h1>Welcome back</h1><p class="admin-auth__lead">Sign in with your administrator account.</p>
+<%= form_with model: resource, as: resource_name, url: admin_user_session_path, local: true, class: 'admin-form' do |form| %>
+  <div><%= form.label :email, 'Email' %><%= form.email_field :email, autofocus: true, autocomplete: 'email', required: true %></div>
+  <div><%= form.label :password %><%= form.password_field :password, autocomplete: 'current-password', required: true %></div>
+  <label class="admin-checkbox"><%= form.check_box :remember_me %><span>Remember me</span></label>
+  <%= form.submit 'Login', class: 'admin-button' %>
+<% end %>
+<p class="admin-auth__footer"><%= link_to 'Forgot your password?', new_admin_user_password_path %></p>

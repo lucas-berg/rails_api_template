@@ -1,0 +1,17 @@
+<% content_for :title, "Notification delivery ##{@notification_delivery.id}" %>
+<%= link_to '← Notification deliveries', admin_notification_deliveries_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Notification delivery #<%= @notification_delivery.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @notification_delivery.id.presence || "—" %></dd></div>
+  <div><dt>Notification id</dt><dd><%= @notification_delivery.notification_id.presence || "—" %></dd></div>
+  <div><dt>Channel</dt><dd><%= @notification_delivery.channel.presence || "—" %></dd></div>
+  <div><dt>Status</dt><dd><%= admin_status(@notification_delivery.status) %></dd></div>
+  <div><dt>Attempts</dt><dd><%= @notification_delivery.attempts.presence || "—" %></dd></div>
+  <div><dt>Next attempt at</dt><dd><%= admin_time(@notification_delivery.next_attempt_at) %></dd></div>
+  <div><dt>Last error</dt><dd><%= @notification_delivery.last_error.presence || "—" %></dd></div>
+  <div><dt>Sent at</dt><dd><%= admin_time(@notification_delivery.sent_at) %></dd></div>
+  <div><dt>Created at</dt><dd><%= admin_time(@notification_delivery.created_at) %></dd></div>
+</dl></section>
+<% if @notification_delivery.status == 'failed' && policy([:admin, @notification_delivery]).retry_delivery? %>
+<section class="admin-panel admin-detail-panel"><h2>Retry failed operation</h2><p>Check the failure, resolve its cause, and record why it is ready to retry.</p><%= render 'admin/shared/reason_form', url: retry_delivery_admin_notification_delivery_path(@notification_delivery), label: 'Schedule retry', action_name: 'retry_delivery' %></section>
+<% end %>

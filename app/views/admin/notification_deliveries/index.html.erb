@@ -1,0 +1,13 @@
+<% content_for :title, 'Notification deliveries' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Workspace operations</span><h1>Notification deliveries</h1><p>Review delivery status and recover failed notifications.</p></div></header>
+<%= search_form_for @search, url: admin_notification_deliveries_path, html: { class: "admin-filters" } do |form| %>
+  <div><%= form.label :status_eq, "Status" %><%= form.select :status_eq, %w[pending sending sent failed skipped], include_blank: "All" %></div>
+  <div><%= form.label :channel_eq, "Channel" %><%= form.select :channel_eq, %w[email in_app], include_blank: "All" %></div>
+  <div><%= form.label :notification_id_eq, "Notification id" %><%= form.number_field :notification_id_eq, min: 1 %></div>
+  <div><%= label_tag :per_page, "Per page" %><%= select_tag :per_page, options_for_select([20, 50, 100], @per_page) %></div>
+  <%= form.submit "Search", class: "admin-button" %><%= link_to "Clear", admin_notification_deliveries_path, class: "admin-text-link" %>
+<% end %>
+<section class="admin-panel"><% if @notification_deliveries.any? %><div class="admin-table-wrap"><table><caption class="admin-sr-only">Notification deliveries</caption><thead><tr><th scope="col">ID</th><th scope="col">Notification id</th><th scope="col">Channel</th><th scope="col">Status</th><th scope="col">Attempts</th></tr></thead><tbody>
+<% @notification_deliveries.each do |record| %><tr><td><%= link_to record.id, admin_notification_delivery_path(record) %></td><td><%= record.notification_id.presence || "—" %></td><td><%= record.channel.presence || "—" %></td><td><%= admin_status(record.status) %></td><td><%= record.attempts.presence || "—" %></td></tr><% end %>
+</tbody></table></div><% else %><div class="admin-empty"><h2>No matching records</h2><p>Try changing the filters or come back after new activity.</p></div><% end %></section>
+<%= render "admin/shared/pagination", page: @page, per_page: @per_page, total: @total, filters: @filters %>

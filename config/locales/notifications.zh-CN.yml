@@ -18,10 +18,6 @@ zh-CN:
     ownership_transferred:
       title: 团队所有权已转移
       body: 此团队的所有权已转移。
-    export:
-      ready:
-        title: 您的导出文件已准备就绪
-        body: 您的团队数据导出文件已可下载。
     deletion:
       team_requested:
         title: 已申请删除团队

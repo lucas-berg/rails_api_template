@@ -1,0 +1,9 @@
+<%= render 'admin/shared/errors', resource: administrator %>
+<%= form_with model: [:admin, administrator], local: true, class: 'admin-form' do |form| %>
+  <div><%= form.label :email %><%= form.email_field :email, autocomplete: 'off', required: true %></div>
+  <div><%= form.label :role %><%= form.select :role, [['Support — read only', 'support'], ['Super admin — operations access', 'super_admin']] %></div>
+  <div><%= form.label :password %><%= form.password_field :password, autocomplete: 'new-password', required: administrator.new_record?, minlength: Devise.password_length.min %><% if administrator.persisted? %><small>Leave blank to keep the existing password.</small><% end %></div>
+  <div><%= form.label :password_confirmation %><%= form.password_field :password_confirmation, autocomplete: 'new-password', required: administrator.new_record? %></div>
+  <div><%= form.label :operation_reason, 'Reason' %><%= form.text_field :operation_reason, required: true, placeholder: 'Explain this change for the audit history' %></div>
+  <div class="admin-form__actions"><%= form.submit administrator.new_record? ? 'Create administrator' : 'Save changes', class: 'admin-button' %><%= link_to 'Cancel', admin_admin_users_path, class: 'admin-text-link' %></div>
+<% end %>

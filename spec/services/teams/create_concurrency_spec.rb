@@ -74,7 +74,7 @@ RSpec.describe Teams::Create do
     end
 
     expect(results.count { |result| result.is_a?(Member) }).to eq(1)
-    expect(results.count { |result| result.is_a?(Authorization::Forbidden) }).to eq(1)
+    expect(results.count { |result| result.is_a?(Pundit::NotAuthorizedError) }).to eq(1)
     expect(team.active_members.owner.count).to eq(1)
     expect(team.active_members.find_by!(user: owner)).to be_admin
     expect(AuditEvent.where(team_id: team.id, action: 'team.ownership_transferred').count).to eq(1)

@@ -1,0 +1,13 @@
+<% content_for :title, "Administrator ##{@admin_user.id}" %>
+<%= link_to '← Administrators', admin_admin_users_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Administrator #<%= @admin_user.id %></h1></div><% if policy([:admin, @admin_user]).update? %><%= link_to 'Edit administrator', edit_admin_admin_user_path(@admin_user), class: 'admin-button' %><% end %></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @admin_user.id.presence || "—" %></dd></div>
+  <div><dt>Email</dt><dd><%= @admin_user.email.presence || "—" %></dd></div>
+  <div><dt>Role</dt><dd><%= admin_status(@admin_user.role) %></dd></div>
+  <div><dt>Sign in count</dt><dd><%= @admin_user.sign_in_count.presence || "—" %></dd></div>
+  <div><dt>Current sign in at</dt><dd><%= admin_time(@admin_user.current_sign_in_at) %></dd></div>
+  <div><dt>Last sign in at</dt><dd><%= admin_time(@admin_user.last_sign_in_at) %></dd></div>
+  <div><dt>Created at</dt><dd><%= admin_time(@admin_user.created_at) %></dd></div>
+  <div><dt>Updated at</dt><dd><%= admin_time(@admin_user.updated_at) %></dd></div>
+</dl></section>

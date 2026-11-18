@@ -1,0 +1,9 @@
+<% content_for :title, 'Choose a new password' %>
+<h1>Choose a new password</h1><p class="admin-auth__lead">Use a unique password for your administrator account.</p>
+<%= render 'admin/shared/errors', resource: resource %>
+<%= form_with model: resource, as: resource_name, url: admin_user_password_path, method: :put, local: true, class: 'admin-form' do |form| %>
+  <%= form.hidden_field :reset_password_token %>
+  <div><%= form.label :password, 'New password' %><%= form.password_field :password, autocomplete: 'new-password', required: true, minlength: Devise.password_length.min %></div>
+  <div><%= form.label :password_confirmation, 'Confirm new password' %><%= form.password_field :password_confirmation, autocomplete: 'new-password', required: true %></div>
+  <%= form.submit 'Change password', class: 'admin-button' %>
+<% end %>

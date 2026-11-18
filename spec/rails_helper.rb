@@ -8,7 +8,6 @@ SimpleCov.start 'rails' do
   group 'Forms', 'app/forms'
   group 'Policies', 'app/policies'
   group 'Presenters', 'app/presenters'
-  skip 'app/admin'
   skip 'config'
   skip 'spec'
   skip 'lib/tasks/code_analysis.rake'

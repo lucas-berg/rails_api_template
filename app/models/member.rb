@@ -32,5 +32,11 @@ class Member < ApplicationRecord
 
   validates :user_id, uniqueness: { scope: :team_id }
 
-  RANSACK_ATTRIBUTES = %w[id team_id user_id role status created_at updated_at].freeze
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[team_id user_id role status]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
 end

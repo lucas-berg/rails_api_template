@@ -64,7 +64,7 @@ RSpec.describe 'Deletion requests API', openapi: { security: [{ 'BearerAuth' => 
     deletion = Deletions::Request.call(actor: user, subject: team, password: user.password)
     get "/api/v1/deletion_requests/#{deletion.id}", headers: auth_headers(create(:user))
     expect(response).to have_http_status(:not_found)
-    deletion.update!(status: 'processing', stage: 'files')
+    deletion.update!(status: 'processing', stage: 'records')
     delete "/api/v1/deletion_requests/#{deletion.id}", params: { current_password: user.password }, headers: headers,
                                                        as: :json
     expect(response).to have_http_status(:conflict)

@@ -1,0 +1,4 @@
+<% content_for :title, 'New administrator' %>
+<%= link_to '← Administrators', admin_admin_users_path, class: 'admin-back' %>
+<header class="admin-heading"><div><h1>New administrator</h1><p>Support accounts can review records. Super admins can perform audited operations.</p></div></header>
+<section class="admin-panel admin-detail-panel admin-form-panel"><%= render 'form', administrator: @admin_user %></section>

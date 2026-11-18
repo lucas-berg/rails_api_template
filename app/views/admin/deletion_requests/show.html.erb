@@ -1,0 +1,22 @@
+<% content_for :title, "Deletion request ##{@deletion_request.id}" %>
+<%= link_to '← Deletion requests', admin_deletion_requests_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Deletion request #<%= @deletion_request.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @deletion_request.id.presence || "—" %></dd></div>
+  <div><dt>Subject type</dt><dd><%= @deletion_request.subject_type.presence || "—" %></dd></div>
+  <div><dt>Subject id</dt><dd><%= @deletion_request.subject_id.presence || "—" %></dd></div>
+  <div><dt>Requested by id</dt><dd><%= @deletion_request.requested_by_id.presence || "—" %></dd></div>
+  <div><dt>Status</dt><dd><%= admin_status(@deletion_request.status) %></dd></div>
+  <div><dt>Stage</dt><dd><%= @deletion_request.stage.presence || "—" %></dd></div>
+  <div><dt>Scheduled at</dt><dd><%= admin_time(@deletion_request.scheduled_at) %></dd></div>
+  <div><dt>Processing started at</dt><dd><%= admin_time(@deletion_request.processing_started_at) %></dd></div>
+  <div><dt>Completed at</dt><dd><%= admin_time(@deletion_request.completed_at) %></dd></div>
+  <div><dt>Canceled at</dt><dd><%= admin_time(@deletion_request.canceled_at) %></dd></div>
+  <div><dt>Attempts</dt><dd><%= @deletion_request.attempts.presence || "—" %></dd></div>
+  <div><dt>Failure code</dt><dd><%= @deletion_request.failure_code.presence || "—" %></dd></div>
+  <div><dt>Notice attempts</dt><dd><%= @deletion_request.notice_attempts.presence || "—" %></dd></div>
+  <div><dt>Notice failure code</dt><dd><%= @deletion_request.notice_failure_code.presence || "—" %></dd></div>
+</dl></section>
+<% if @deletion_request.status == 'failed' && policy([:admin, @deletion_request]).retry_cleanup? %>
+<section class="admin-panel admin-detail-panel"><h2>Retry failed operation</h2><p>Check the failure, resolve its cause, and record why it is ready to retry.</p><%= render 'admin/shared/reason_form', url: retry_cleanup_admin_deletion_request_path(@deletion_request), label: 'Schedule retry', action_name: 'retry_cleanup' %></section>
+<% end %>

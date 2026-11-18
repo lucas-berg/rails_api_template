@@ -1,0 +1,24 @@
+<% content_for :title, "Account ##{@user.id}" %>
+<%= link_to '← Accounts', admin_users_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Account #<%= @user.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @user.id.presence || "—" %></dd></div>
+  <div><dt>Email</dt><dd><%= @user.email.presence || "—" %></dd></div>
+  <div><dt>Username</dt><dd><%= @user.username.presence || "—" %></dd></div>
+  <div><dt>First name</dt><dd><%= @user.first_name.presence || "—" %></dd></div>
+  <div><dt>Last name</dt><dd><%= @user.last_name.presence || "—" %></dd></div>
+  <div><dt>Status</dt><dd><%= admin_status(@user.status) %></dd></div>
+  <div><dt>Confirmed at</dt><dd><%= admin_time(@user.confirmed_at) %></dd></div>
+  <div><dt>Unconfirmed email</dt><dd><%= @user.unconfirmed_email.presence || "—" %></dd></div>
+  <div><dt>Sign in count</dt><dd><%= @user.sign_in_count.presence || "—" %></dd></div>
+  <div><dt>Created at</dt><dd><%= admin_time(@user.created_at) %></dd></div>
+  <div><dt>Updated at</dt><dd><%= admin_time(@user.updated_at) %></dd></div>
+  <div><dt>Deleted at</dt><dd><%= admin_time(@user.deleted_at) %></dd></div>
+</dl></section>
+<% if !@user.deleted_at? %>
+  <% if @user.status == 'active' && policy([:admin, @user]).suspend? %>
+    <section class="admin-panel admin-detail-panel"><h2>Suspend access</h2><p>Record the reason for temporarily suspending this account.</p><%= render 'admin/shared/reason_form', url: suspend_admin_user_path(@user), label: 'Suspend account', action_name: 'suspend' %></section>
+  <% elsif @user.status == 'suspended' && policy([:admin, @user]).restore? %>
+    <section class="admin-panel admin-detail-panel"><h2>Restore access</h2><p>Record the reason for restoring this account.</p><%= render 'admin/shared/reason_form', url: restore_admin_user_path(@user), label: 'Restore account', action_name: 'restore' %></section>
+  <% end %>
+<% end %>

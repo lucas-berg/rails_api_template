@@ -10,7 +10,7 @@ class ApplicationController < ActionController::Base
     render plain: exception.message, status: :conflict
   end
 
-  rescue_from Authorization::Forbidden, with: :access_denied
+  rescue_from Pundit::NotAuthorizedError, with: :access_denied
 
   def access_denied(_exception)
     render plain: 'You do not have permission to perform this action.', status: :forbidden

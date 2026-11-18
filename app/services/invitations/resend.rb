@@ -5,7 +5,7 @@ module Invitations
     def call(invitation_id)
       within_team do
         invitation = team.invitations.find(invitation_id)
-        authorize!(:resend, invitation)
+        Pundit.authorize(actor, invitation, :resend?)
         if invitation.accepted_at || invitation.revoked_at
           raise Collaboration::Conflict.new('invitation_closed', 'This invitation is no longer open')
         end

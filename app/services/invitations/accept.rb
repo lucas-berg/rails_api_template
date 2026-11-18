@@ -42,7 +42,7 @@ module Invitations
       unless @invitation.pending?
         raise Collaboration::Conflict.new('invitation_closed', 'This invitation is no longer valid')
       end
-      return if Authorization.allowed?(@invitation.invited_by, :create, @invitation, team: @team)
+      return if Pundit.policy!(@invitation.invited_by, @invitation).create?
 
       raise Collaboration::Conflict.new('invitation_closed', 'The inviter can no longer grant this access')
     end
@@ -65,9 +65,7 @@ module Invitations
     end
 
     def validate_acceptance!
-      unless @actor.active_for_authentication? && @actor.confirmed? && @actor.email == @invitation.normalized_email
-        raise Authorization::Forbidden, 'Sign in with the verified email address receiving this invitation'
-      end
+      Pundit.authorize(@actor, @invitation, :accept?)
       raise Collaboration::Conflict.new('team_suspended', 'This team is suspended') unless @team.active?
       raise ActiveRecord::RecordNotFound unless @invitation.token_matches?(@token)
     end

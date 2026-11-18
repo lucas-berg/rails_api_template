@@ -32,7 +32,7 @@ RSpec.describe 'Platform data lifecycle controls' do
 
   it 'prevents support from retrying failed cleanup' do
     deletion = Deletions::Request.call(actor: user, subject: team, password: user.password)
-    deletion.update!(status: 'failed', stage: 'files', attempts: 8, failure_code: 'IOError')
+    deletion.update!(status: 'failed', stage: 'records', attempts: 8, failure_code: 'IOError')
     clear_enqueued_jobs
     sign_in support
     post "/admin/deletion_requests/#{deletion.id}/retry_cleanup", params: { reason: 'Storage recovered' }
@@ -42,7 +42,7 @@ RSpec.describe 'Platform data lifecycle controls' do
 
   it 'requires and audits a reason for a super administrator to retry failed cleanup' do
     deletion = Deletions::Request.call(actor: user, subject: team, password: user.password)
-    deletion.update!(status: 'failed', stage: 'files', attempts: 8, failure_code: 'IOError')
+    deletion.update!(status: 'failed', stage: 'records', attempts: 8, failure_code: 'IOError')
     clear_enqueued_jobs
     sign_in operator
     get '/admin'
@@ -57,12 +57,11 @@ RSpec.describe 'Platform data lifecycle controls' do
     )
   end
 
-  it 'shows lifecycle metadata without encrypted recipients, fingerprints or storage leases' do
+  it 'shows lifecycle metadata without encrypted recipients or private fingerprints' do
     deletion = Deletions::Request.call(actor: user, subject: team, password: user.password)
     tombstone = DeletionTombstone.create!(subject_type: 'Team', subject_id: team.id,
                                           request_uuid: deletion.uuid, fingerprint: 'private-fingerprint',
                                           deleted_at: Time.current)
-    export = DataExport.create!(team: team, requested_by: user, lease_token: 'private-lease')
     sign_in support
 
     get "/admin/deletion_requests/#{deletion.id}"
@@ -71,8 +70,5 @@ RSpec.describe 'Platform data lifecycle controls' do
     get "/admin/deletion_tombstones/#{tombstone.id}"
     expect(response).to have_http_status(:ok)
     expect(response.body).not_to include(tombstone.fingerprint)
-    get "/admin/data_exports/#{export.id}"
-    expect(response).to have_http_status(:ok)
-    expect(response.body).not_to include(export.lease_token)
   end
 end

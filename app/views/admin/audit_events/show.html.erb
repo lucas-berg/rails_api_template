@@ -1,0 +1,16 @@
+<% content_for :title, "Audit event ##{@audit_event.id}" %>
+<%= link_to '← Audit history', admin_audit_events_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Audit event #<%= @audit_event.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @audit_event.id.presence || "—" %></dd></div>
+  <div><dt>Action</dt><dd><%= @audit_event.action.presence || "—" %></dd></div>
+  <div><dt>Team id</dt><dd><%= @audit_event.team_id.presence || "—" %></dd></div>
+  <div><dt>Actor type</dt><dd><%= @audit_event.actor_type.presence || "—" %></dd></div>
+  <div><dt>Actor id</dt><dd><%= @audit_event.actor_id.presence || "—" %></dd></div>
+  <div><dt>Target type</dt><dd><%= @audit_event.target_type.presence || "—" %></dd></div>
+  <div><dt>Target id</dt><dd><%= @audit_event.target_id.presence || "—" %></dd></div>
+  <div><dt>Request id</dt><dd><%= @audit_event.request_id.presence || "—" %></dd></div>
+  <div><dt>Reason</dt><dd><%= @audit_event.reason.presence || "—" %></dd></div>
+  <div><dt>Occurred at</dt><dd><%= admin_time(@audit_event.occurred_at) %></dd></div>
+</dl></section>
+<section class="admin-panel admin-detail-panel"><h2>Recorded changes</h2><pre class="admin-code"><%= JSON.pretty_generate(@audit_event.metadata.slice(*AuditEvent::SAFE_METADATA)) %></pre></section>

@@ -1,0 +1,22 @@
+<% content_for :title, 'Overview' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Workspace operations</span><h1>Overview</h1><p>Account activity and operational work that needs your attention.</p></div><span class="admin-role"><%= current_admin_user.role.humanize %> access</span></header>
+
+<section class="admin-stats" aria-label="Platform totals">
+  <%= link_to admin_users_path, class: 'admin-stat' do %><span>Accounts</span><strong><%= number_with_delimiter(@user_count) %></strong><small>Excluding deleted accounts →</small><% end %>
+  <%= link_to admin_teams_path, class: 'admin-stat' do %><span>Teams</span><strong><%= number_with_delimiter(@team_count) %></strong><small>Excluding deleted teams →</small><% end %>
+  <%= link_to admin_deletion_requests_path(q: { status_eq: 'pending' }), class: 'admin-stat' do %><span>Scheduled deletions</span><strong><%= number_with_delimiter(@pending_deletion_count) %></strong><small>In the cooling period →</small><% end %>
+</section>
+
+<section class="admin-panel admin-detail-panel"><div class="admin-section-heading"><h2>Needs attention</h2><p>Open a failed operation to inspect its status and audit history.</p></div>
+  <div class="admin-attention">
+    <%= link_to admin_mail_deliveries_path(q: { status_eq: 'failed' }) do %><span><strong>Transactional mail</strong><small>Confirmation, password reset and invitations</small></span><span class="admin-count"><%= @failed_mail_count %></span><% end %>
+    <%= link_to admin_notification_deliveries_path(q: { status_eq: 'failed' }) do %><span><strong>Notification delivery</strong><small>Account security and team activity</small></span><span class="admin-count"><%= @failed_notification_count %></span><% end %>
+    <%= link_to admin_deletion_requests_path(q: { status_eq: 'failed' }) do %><span><strong>Deletion cleanup</strong><small>Interrupted or failed data cleanup</small></span><span class="admin-count"><%= @failed_deletion_count %></span><% end %>
+  </div>
+</section>
+
+<section class="admin-panel"><div class="admin-section-heading admin-panel-heading"><h2>Recent audit history</h2><%= link_to 'View all history →', admin_audit_events_path, class: 'admin-text-link' %></div>
+  <% if @audit_events.any? %><div class="admin-table-wrap"><table><thead><tr><th scope="col">Action</th><th scope="col">Actor</th><th scope="col">Team</th><th scope="col">Time</th></tr></thead><tbody>
+    <% @audit_events.each do |event| %><tr><td><%= link_to event.action, admin_audit_event_path(event) %></td><td><%= event.actor_type %> #<%= event.actor_id %></td><td><%= event.team_id || '—' %></td><td><%= admin_time(event.occurred_at) %></td></tr><% end %>
+  </tbody></table></div><% else %><div class="admin-empty"><h2>No audit activity yet</h2><p>Team changes and platform operations will appear here.</p></div><% end %>
+</section>

@@ -4,10 +4,10 @@ module API
   module V1
     class TeamOnboardingController < TeamContextController
       def show
-        authorize!(:read, @team)
+        authorize @team, :show?
         steps = [{ key: 'verify_email', completed: current_user.confirmed? },
                  { key: 'join_team', completed: true }]
-        steps << invitation_step if Authorization.allowed?(current_user, :update, @team)
+        steps << invitation_step if policy(@team).update?
         render_data({ steps: })
       end
 

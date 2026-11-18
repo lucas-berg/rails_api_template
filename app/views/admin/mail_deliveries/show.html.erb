@@ -1,0 +1,18 @@
+<% content_for :title, "Mail delivery ##{@mail_delivery.id}" %>
+<%= link_to '← Mail deliveries', admin_mail_deliveries_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Mail delivery #<%= @mail_delivery.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @mail_delivery.id.presence || "—" %></dd></div>
+  <div><dt>Kind</dt><dd><%= @mail_delivery.kind.presence || "—" %></dd></div>
+  <div><dt>User id</dt><dd><%= @mail_delivery.user_id.presence || "—" %></dd></div>
+  <div><dt>Team id</dt><dd><%= @mail_delivery.team_id.presence || "—" %></dd></div>
+  <div><dt>Status</dt><dd><%= admin_status(@mail_delivery.status) %></dd></div>
+  <div><dt>Attempts</dt><dd><%= @mail_delivery.attempts.presence || "—" %></dd></div>
+  <div><dt>Next attempt at</dt><dd><%= admin_time(@mail_delivery.next_attempt_at) %></dd></div>
+  <div><dt>Sent at</dt><dd><%= admin_time(@mail_delivery.sent_at) %></dd></div>
+  <div><dt>Last error</dt><dd><%= @mail_delivery.last_error.presence || "—" %></dd></div>
+  <div><dt>Created at</dt><dd><%= admin_time(@mail_delivery.created_at) %></dd></div>
+</dl></section>
+<% if @mail_delivery.status == 'failed' && policy([:admin, @mail_delivery]).retry_delivery? %>
+<section class="admin-panel admin-detail-panel"><h2>Retry failed operation</h2><p>Check the failure, resolve its cause, and record why it is ready to retry.</p><%= render 'admin/shared/reason_form', url: retry_delivery_admin_mail_delivery_path(@mail_delivery), label: 'Schedule retry', action_name: 'retry_delivery' %></section>
+<% end %>

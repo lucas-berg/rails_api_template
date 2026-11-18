@@ -18,10 +18,6 @@ en:
     ownership_transferred:
       title: Team ownership changed
       body: Ownership of this team has been transferred.
-    export:
-      ready:
-        title: Your export is ready
-        body: Your team export is ready to download.
     deletion:
       team_requested:
         title: Team deletion requested

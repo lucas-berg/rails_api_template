@@ -45,6 +45,14 @@ class NotificationDelivery < ApplicationRecord
                            .or(where(channel: 'email', status: 'sending', locked_at: ..LEASE_DURATION.ago))
   }
 
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[status channel notification_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
+
   def claim!
     with_lock do
       return unless claimable?

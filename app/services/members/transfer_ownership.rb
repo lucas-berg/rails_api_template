@@ -14,7 +14,7 @@ module Members
 
     def transfer_to(member_id)
       within_team do
-        authorize!(:transfer_ownership, team)
+        Pundit.authorize(actor, team, :transfer_ownership?)
         previous_owner = team.active_members.find_by!(user_id: actor.id)
         new_owner = active_member!(member_id)
         if new_owner == previous_owner

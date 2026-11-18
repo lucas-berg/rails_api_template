@@ -1,0 +1,13 @@
+<% content_for :title, 'Invitations' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Workspace operations</span><h1>Invitations</h1><p>Review invitations without exposing invitation tokens.</p></div></header>
+<%= search_form_for @search, url: admin_invitations_path, html: { class: "admin-filters" } do |form| %>
+  <div><%= form.label :team_id_eq, "Team id" %><%= form.number_field :team_id_eq, min: 1 %></div>
+  <div><%= form.label :normalized_email_cont, "Invitee email" %><%= form.search_field :normalized_email_cont, placeholder: "Contains invitee email" %></div>
+  <div><%= form.label :role_eq, "Role" %><%= form.select :role_eq, %w[admin member viewer], include_blank: "All" %></div>
+  <div><%= label_tag :per_page, "Per page" %><%= select_tag :per_page, options_for_select([20, 50, 100], @per_page) %></div>
+  <%= form.submit "Search", class: "admin-button" %><%= link_to "Clear", admin_invitations_path, class: "admin-text-link" %>
+<% end %>
+<section class="admin-panel"><% if @invitations.any? %><div class="admin-table-wrap"><table><caption class="admin-sr-only">Invitations</caption><thead><tr><th scope="col">ID</th><th scope="col">Team id</th><th scope="col">Invitee email</th><th scope="col">Role</th><th scope="col">Expires at</th></tr></thead><tbody>
+<% @invitations.each do |record| %><tr><td><%= link_to record.id, admin_invitation_path(record) %></td><td><%= record.team_id.presence || "—" %></td><td><%= record.normalized_email.presence || "—" %></td><td><%= admin_status(record.role) %></td><td><%= admin_time(record.expires_at) %></td></tr><% end %>
+</tbody></table></div><% else %><div class="admin-empty"><h2>No matching records</h2><p>Try changing the filters or come back after new activity.</p></div><% end %></section>
+<%= render "admin/shared/pagination", page: @page, per_page: @per_page, total: @total, filters: @filters %>

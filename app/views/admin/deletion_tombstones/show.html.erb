@@ -1,0 +1,10 @@
+<% content_for :title, "Ledger entry ##{@deletion_tombstone.id}" %>
+<%= link_to '← Deletion ledger', admin_deletion_tombstones_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Ledger entry #<%= @deletion_tombstone.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @deletion_tombstone.id.presence || "—" %></dd></div>
+  <div><dt>Subject type</dt><dd><%= @deletion_tombstone.subject_type.presence || "—" %></dd></div>
+  <div><dt>Subject id</dt><dd><%= @deletion_tombstone.subject_id.presence || "—" %></dd></div>
+  <div><dt>Deleted at</dt><dd><%= admin_time(@deletion_tombstone.deleted_at) %></dd></div>
+  <div><dt>Created at</dt><dd><%= admin_time(@deletion_tombstone.created_at) %></dd></div>
+</dl></section>

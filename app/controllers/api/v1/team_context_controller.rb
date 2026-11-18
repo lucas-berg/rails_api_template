@@ -8,7 +8,7 @@ module API
       private
 
       def load_team
-        @team = Authorization.team_scope(current_user).find(params.expect(:team_id))
+        @team = policy_scope(Team).find(params.expect(:team_id))
         Current.team = @team
       end
 

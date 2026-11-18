@@ -1,15 +1,31 @@
 # frozen_string_literal: true
 
-class TeamPolicy < TeamAccessPolicy
-  PERMISSIONS = {
-    read: %w[owner admin member viewer], update: %w[owner admin],
-    audit: %w[owner admin], transfer_ownership: ['owner']
-  }.freeze
+class TeamPolicy < ApplicationPolicy
+  def create?
+    verified_user?
+  end
 
-  def allowed?(action)
-    return verified_user? if action == :create
+  def show?
+    membership_for(record).present?
+  end
 
-    member = membership
-    member && PERMISSIONS.fetch(action, []).include?(member.role)
+  def update?
+    %w[owner admin].include?(membership_for(record)&.role)
+  end
+
+  alias audit? update?
+
+  def transfer_ownership?
+    membership_for(record)&.owner? == true
+  end
+
+  alias request_deletion? transfer_ownership?
+
+  class Scope < ApplicationPolicy::Scope
+    def resolve
+      return scope.none unless verified_user?
+
+      scope.accessible.where(id: user.active_members.select(:team_id))
+    end
   end
 end

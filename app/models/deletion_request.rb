@@ -44,10 +44,15 @@ class DeletionRequest < ApplicationRecord
   validates :status, inclusion: { in: %w[pending processing failed completed canceled] }
   validates :uuid, :scheduled_at, presence: true
 
-  RANSACK_ATTRIBUTES = %w[id uuid subject_type subject_id requested_by_id status stage scheduled_at completed_at
-                          failure_code attempts].freeze
-
   before_validation(on: :create) { self.uuid ||= SecureRandom.uuid }
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[subject_type subject_id status]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
 
   def self.cooling_period
     Integer(ENV.fetch('DELETION_COOLING_DAYS', '7')).clamp(1, 30).days

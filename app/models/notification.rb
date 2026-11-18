@@ -41,6 +41,14 @@ class Notification < ApplicationRecord
 
   scope :visible, -> { where.not(visible_at: nil) }
 
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[user_id team_id kind category]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
+
   def self.visible_to(user)
     return none unless user.active_for_authentication?
 

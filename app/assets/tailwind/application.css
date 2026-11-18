@@ -1,5 +1,7 @@
-@layer theme, components, utilities;
-@import "tailwindcss/theme.css" layer(theme) prefix(aa);
-@import "tailwindcss/utilities.css" layer(utilities) prefix(aa);
-@source "../../admin/**/*.rb";
-@source "../../views/active_admin/**/*.{arb,erb,html}";
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, night --prefersdark;
+}
+@source "../../views/users/**/*.{erb,html}";
+@source "../../views/devise/**/*.{erb,html}";
+@source "../../views/invitation_acceptances/**/*.erb";

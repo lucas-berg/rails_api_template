@@ -1,0 +1,4 @@
+<% content_for :title, 'Edit administrator' %>
+<%= link_to '← Administrators', admin_admin_users_path, class: 'admin-back' %>
+<header class="admin-heading"><div><h1>Edit administrator</h1><p>Every change requires a reason and is recorded in the audit history.</p></div></header>
+<section class="admin-panel admin-detail-panel admin-form-panel"><%= render 'form', administrator: @admin_user %></section>

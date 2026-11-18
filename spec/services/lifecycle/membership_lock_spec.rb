@@ -42,7 +42,7 @@ RSpec.describe Lifecycle::MembershipLock do
     User.find(owner.id).suspend!
     expect {
       Teams::Update.new(actor: owner, team:).call(name: 'Unauthorized rename')
-    }.to raise_error(Authorization::Forbidden)
+    }.to raise_error(Pundit::NotAuthorizedError)
     expect(team.reload.name).to eq(original_name)
   end
 
@@ -51,7 +51,7 @@ RSpec.describe Lifecycle::MembershipLock do
     User.find(user.id).suspend!
     expect {
       Teams::Create.call(actor: user, attributes: { name: 'Unauthorized team' })
-    }.to raise_error(Authorization::Forbidden)
+    }.to raise_error(Pundit::NotAuthorizedError)
   end
 
   it 'does not restore a tombstoned account through a stale instance or direct status updates' do

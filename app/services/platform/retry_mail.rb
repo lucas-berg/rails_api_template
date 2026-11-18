@@ -3,7 +3,7 @@
 module Platform
   class RetryMail
     def self.call(actor:, delivery:, reason:, request_id:)
-      raise Authorization::Forbidden unless actor.is_a?(AdminUser) && actor.super_admin?
+      Pundit.authorize(actor, [:admin, delivery], :retry_delivery?)
       raise ArgumentError, 'A reason is required' if reason.blank?
 
       delivery.with_lock do

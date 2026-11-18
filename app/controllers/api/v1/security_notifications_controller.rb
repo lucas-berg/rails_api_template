@@ -9,7 +9,7 @@ module API
 
       def read
         notification = notifications.find(params.expect(:id))
-        authorize!(:mark_read, notification)
+        authorize notification, :mark_read?
         notification.mark_read!
         render_data(notification.presentation)
       end
@@ -17,7 +17,7 @@ module API
       private
 
       def notifications
-        Notification.visible_to(current_user).where(team_id: nil, category: 'security').includes(:user, :team)
+        policy_scope(Notification).where(team_id: nil, category: 'security').includes(:user, :team)
       end
     end
   end

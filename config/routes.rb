@@ -30,19 +30,8 @@ Rails.application.routes.draw do
         resources :notifications, only: :index do
           post :read, on: :member
         end
-        resources :uploads, only: :create do
-          post :complete, on: :member
-        end
-        resources :files, only: %i[index show destroy] do
-          get :download, on: :member
-          get :preview, on: :member
-        end
-        resource :avatar, only: %i[show update destroy]
         resource :dashboard, only: :show, controller: 'team_dashboards'
         resource :onboarding, only: :show, controller: 'team_onboarding'
-        resources :exports, controller: 'data_exports', only: %i[index create show] do
-          get :download, on: :member
-        end
       end
       post 'invitations/accept', to: 'invitation_acceptances#create'
       resources :security_notifications, only: :index do
@@ -61,10 +50,35 @@ Rails.application.routes.draw do
     end
   end
 
-  devise_for :admin_users, ActiveAdmin::Devise.config
-  ActiveAdmin.routes(self)
+  devise_for :admin_users, path: 'admin', path_names: { sign_in: 'login', sign_out: 'logout' },
+                           controllers: { sessions: 'admin/sessions', passwords: 'admin/passwords' }
   namespace :admin do
-    authenticate(:admin_user, ->(admin) { admin.super_admin? }) do
+    root 'dashboard#show'
+    resources :users, only: %i[index show] do
+      post :suspend, on: :member
+      post :restore, on: :member
+    end
+    resources :teams, only: %i[index show] do
+      post :suspend, on: :member
+      post :restore, on: :member
+    end
+    resources :admin_users, except: :destroy
+    resources :members, only: %i[index show]
+    resources :invitations, only: %i[index show]
+    resources :auth_sessions, only: %i[index show]
+    resources :audit_events, only: %i[index show]
+    resources :notifications, only: %i[index show]
+    resources :deletion_tombstones, only: %i[index show]
+    resources :mail_deliveries, only: %i[index show] do
+      post :retry_delivery, on: :member
+    end
+    resources :notification_deliveries, only: %i[index show] do
+      post :retry_delivery, on: :member
+    end
+    resources :deletion_requests, only: %i[index show] do
+      post :retry_cleanup, on: :member
+    end
+    authenticate(:admin_user, ->(admin) { Pundit.policy!(admin, %i[admin dashboard]).manage_tools? }) do
       mount Flipper::UI.app(Flipper) => '/feature-flags'
       mount GoodJob::Engine => '/jobs'
     end

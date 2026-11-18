@@ -13,7 +13,7 @@ module App
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
-    # Private blobs are served exclusively through authenticated team controllers.
+    # File features are not exposed by this template.
     config.active_storage.draw_routes = false
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do

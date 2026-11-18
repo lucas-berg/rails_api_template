@@ -1,0 +1,8 @@
+en:
+  admin:
+    messages:
+      created: Administrator created.
+      updated: Administrator updated.
+      account_updated: Account status updated.
+      team_updated: Team status updated.
+      retry_scheduled: Retry scheduled.

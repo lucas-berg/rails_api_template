@@ -12,7 +12,8 @@ RSpec.describe 'Team dashboard and onboarding' do
     create(:invitation, team:)
     get "/api/v1/teams/#{team.id}/dashboard", headers: auth_headers(user)
     expect(response).to have_http_status(:ok)
-    expect(json.dig('data', 'counts')).to include('members' => 1, 'files' => 0, 'pending_invitations' => 1)
+    expect(json.dig('data', 'counts')).to include('members' => 1, 'pending_invitations' => 1)
+    expect(json.dig('data', 'counts')).not_to have_key('files')
     expect(json.dig('data', 'preferences')).to eq('locale' => 'zh-CN', 'timezone' => 'Asia/Shanghai')
   end
 

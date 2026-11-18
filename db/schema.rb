@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_152000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -99,26 +99,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_152000) do
     t.check_constraint "credentials_version >= 0", name: "auth_sessions_version_nonnegative"
   end
 
-  create_table "data_exports", force: :cascade do |t|
-    t.bigint "team_id", null: false
-    t.integer "requested_by_id", null: false
-    t.string "status", default: "pending", null: false
-    t.integer "attempts", default: 0, null: false
-    t.bigint "staging_blob_id"
-    t.string "lease_token"
-    t.datetime "processing_started_at"
-    t.datetime "expires_at"
-    t.string "failure_code"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["requested_by_id"], name: "index_data_exports_on_requested_by_id"
-    t.index ["staging_blob_id"], name: "index_data_exports_on_staging_blob_id"
-    t.index ["status", "expires_at"], name: "index_data_exports_on_status_and_expires_at"
-    t.index ["team_id"], name: "index_data_exports_on_team_id"
-    t.check_constraint "attempts >= 0", name: "data_exports_attempts_nonnegative"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'processing'::character varying::text, 'ready'::character varying::text, 'failed'::character varying::text, 'expired'::character varying::text])", name: "data_exports_status_allowed"
-  end
-
   create_table "deletion_requests", force: :cascade do |t|
     t.string "uuid", null: false
     t.string "subject_type", null: false
@@ -144,7 +124,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_152000) do
     t.index ["subject_type", "subject_id"], name: "index_deletion_requests_on_open_subject", unique: true, where: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('processing'::character varying)::text, ('failed'::character varying)::text]))"
     t.index ["uuid"], name: "index_deletion_requests_on_uuid", unique: true
     t.check_constraint "attempts >= 0 AND notice_attempts >= 0", name: "deletion_requests_attempts_nonnegative"
-    t.check_constraint "stage::text = ANY (ARRAY['requested'::character varying::text, 'ledger'::character varying::text, 'files'::character varying::text, 'exports'::character varying::text, 'records'::character varying::text, 'completed'::character varying::text])", name: "deletion_requests_stage_allowed"
+    t.check_constraint "stage::text = ANY (ARRAY['requested'::character varying, 'ledger'::character varying, 'records'::character varying, 'completed'::character varying]::text[])", name: "deletion_requests_stage_allowed"
     t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'processing'::character varying::text, 'failed'::character varying::text, 'completed'::character varying::text, 'canceled'::character varying::text])", name: "deletion_requests_status_allowed"
     t.check_constraint "subject_type::text = ANY (ARRAY['User'::character varying::text, 'Team'::character varying::text])", name: "deletion_requests_subject_allowed"
   end
@@ -160,33 +140,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_152000) do
     t.index ["request_uuid"], name: "index_deletion_tombstones_on_request_uuid", unique: true
     t.index ["subject_type", "subject_id"], name: "index_deletion_tombstones_on_subject_type_and_subject_id"
     t.check_constraint "subject_type::text = ANY (ARRAY['User'::character varying::text, 'Team'::character varying::text])", name: "deletion_tombstones_subject_allowed"
-  end
-
-  create_table "documents", force: :cascade do |t|
-    t.bigint "team_id", null: false
-    t.integer "uploader_id", null: false
-    t.string "status", default: "uploading", null: false
-    t.string "original_filename", null: false
-    t.string "declared_content_type", null: false
-    t.string "verified_content_type"
-    t.bigint "byte_size", null: false
-    t.string "failure_code"
-    t.datetime "upload_expires_at", null: false
-    t.datetime "verification_requested_at"
-    t.datetime "verified_at"
-    t.datetime "purge_requested_at"
-    t.datetime "purged_at"
-    t.integer "purge_attempts", default: 0, null: false
-    t.string "last_error"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["status", "purge_requested_at"], name: "index_documents_on_status_and_purge_requested_at"
-    t.index ["status", "upload_expires_at"], name: "index_documents_on_status_and_upload_expires_at"
-    t.index ["status", "verification_requested_at"], name: "index_documents_on_status_and_verification_requested_at"
-    t.index ["team_id"], name: "index_documents_on_team_id"
-    t.index ["uploader_id"], name: "index_documents_on_uploader_id"
-    t.check_constraint "byte_size >= 0 AND purge_attempts >= 0", name: "documents_counts_valid"
-    t.check_constraint "status::text = ANY (ARRAY['uploading'::character varying::text, 'processing'::character varying::text, 'ready'::character varying::text, 'rejected'::character varying::text, 'deleting'::character varying::text, 'deleted'::character varying::text, 'purge_failed'::character varying::text])", name: "documents_status_valid"
   end
 
   create_table "flipper_features", force: :cascade do |t|
@@ -491,9 +444,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_152000) do
     t.string "status", default: "active", null: false
     t.integer "credentials_version", default: 0, null: false
     t.jsonb "preferences", default: {}, null: false
-    t.bigint "avatar_document_id"
     t.datetime "deleted_at"
-    t.index ["avatar_document_id"], name: "index_users_on_avatar_document_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -505,12 +456,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_152000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "audit_events", "teams"
   add_foreign_key "auth_sessions", "users"
-  add_foreign_key "data_exports", "active_storage_blobs", column: "staging_blob_id", on_delete: :nullify
-  add_foreign_key "data_exports", "teams"
-  add_foreign_key "data_exports", "users", column: "requested_by_id"
   add_foreign_key "deletion_requests", "users", column: "requested_by_id"
-  add_foreign_key "documents", "teams"
-  add_foreign_key "documents", "users", column: "uploader_id"
   add_foreign_key "invitations", "teams"
   add_foreign_key "invitations", "users", column: "invited_by_id"
   add_foreign_key "mail_deliveries", "teams", on_delete: :nullify
@@ -521,5 +467,4 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_152000) do
   add_foreign_key "notification_preferences", "users"
   add_foreign_key "notifications", "teams"
   add_foreign_key "notifications", "users"
-  add_foreign_key "users", "documents", column: "avatar_document_id", on_delete: :nullify
 end

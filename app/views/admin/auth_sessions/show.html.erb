@@ -1,0 +1,11 @@
+<% content_for :title, "API session ##{@auth_session.id}" %>
+<%= link_to '← API sessions', admin_auth_sessions_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>API session #<%= @auth_session.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @auth_session.id.presence || "—" %></dd></div>
+  <div><dt>User id</dt><dd><%= @auth_session.user_id.presence || "—" %></dd></div>
+  <div><dt>Created at</dt><dd><%= admin_time(@auth_session.created_at) %></dd></div>
+  <div><dt>Expires at</dt><dd><%= admin_time(@auth_session.expires_at) %></dd></div>
+  <div><dt>Revoked at</dt><dd><%= admin_time(@auth_session.revoked_at) %></dd></div>
+  <div><dt>Last used at</dt><dd><%= admin_time(@auth_session.last_used_at) %></dd></div>
+</dl></section>

@@ -4,7 +4,7 @@ module API
   module V1
     class AuditEventsController < TeamContextController
       def index
-        authorize!(:audit, @team)
+        authorize @team, :audit?
         render_collection(filtered_events) { |event| SaasPresenter.audit_event(event) }
       end
 

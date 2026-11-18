@@ -21,7 +21,7 @@ module Lifecycle
         raise Collaboration::Conflict.new('account_deletion_pending',
                                           'Cancel account deletion before joining or creating a team')
       end
-      raise Authorization::Forbidden unless user.active_for_authentication?
+      raise Pundit::NotAuthorizedError unless user.active_for_authentication?
     end
   end
 end

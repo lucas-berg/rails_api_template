@@ -5,7 +5,7 @@ module Invitations
     def call(invitation_id)
       within_team do
         invitation = team.invitations.find(invitation_id)
-        authorize!(:revoke, invitation)
+        Pundit.authorize(actor, invitation, :destroy?)
         raise Collaboration::Conflict.new('invitation_accepted', 'Remove the member instead') if invitation.accepted_at
 
         unless invitation.revoked_at

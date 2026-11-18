@@ -42,8 +42,13 @@ class Invitation < ApplicationRecord
   validates :token_digest, presence: true, uniqueness: true
   validates :expires_at, presence: true
 
-  RANSACK_ATTRIBUTES = %w[id team_id invited_by_id normalized_email role expires_at accepted_at revoked_at
-                          created_at].freeze
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[team_id normalized_email role]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
 
   def pending?
     accepted_at.nil? && revoked_at.nil? && expires_at.future?

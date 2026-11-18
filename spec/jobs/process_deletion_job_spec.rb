@@ -42,6 +42,19 @@ RSpec.describe ProcessDeletionJob do
     expect(request.reload.encrypted_recipient).to be_nil
   end
 
+  it 'clears team invitations, notifications and mail while retaining the completion audit' do
+    invitation = Invitations::Create.new(actor: user, team: team).call(email: 'remove@example.com')
+    request = due_request(team)
+
+    described_class.perform_now(request.id)
+
+    expect(request.reload).to have_attributes(status: 'completed', stage: 'completed')
+    expect(Invitation.exists?(invitation.id)).to be(false)
+    expect(Notification.where(team: team)).to be_empty
+    expect(MailDelivery.where(team_id: team.id)).to be_empty
+    expect(team.audit_events.where(action: 'deletion.completed')).to exist
+  end
+
   it 'performs no irreversible cleanup if the independent ledger cannot be written' do
     request = due_request(team)
     allow(Lifecycle::DeletionLedger).to receive(:write!).and_raise(IOError)

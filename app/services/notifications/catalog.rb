@@ -9,7 +9,6 @@ module Notifications
       'invitation_accepted' => 'activity',
       'member_role_changed' => 'activity',
       'ownership_transferred' => 'activity',
-      'export.ready' => 'activity',
       'deletion.team_requested' => 'activity',
       'deletion.team_canceled' => 'activity',
       'deletion.account_requested' => 'security',

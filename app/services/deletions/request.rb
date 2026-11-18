@@ -26,12 +26,12 @@ module Deletions
     def verify_password!
       return if @actor.active_for_authentication? && @actor.valid_password?(@password.to_s)
 
-      raise Authorization::Forbidden, 'Confirm your current password'
+      raise Pundit::NotAuthorizedError, 'Confirm your current password'
     end
 
     def request_team
       @subject.with_lock do
-        Authorization.authorize!(@actor, :transfer_ownership, @subject)
+        Pundit.authorize(@actor, @subject, :request_deletion?)
         existing = open_request
         return existing if existing
 
@@ -48,7 +48,7 @@ module Deletions
     end
 
     def request_user
-      raise Authorization::Forbidden unless @subject == @actor
+      Pundit.authorize(@actor, @subject, :request_deletion?)
 
       Lifecycle::OwnerGuard.lock_teams(@actor) do
         Lifecycle::OwnerGuard.check!(@actor)

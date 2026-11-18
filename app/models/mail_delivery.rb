@@ -38,7 +38,6 @@ class MailDelivery < ApplicationRecord
                             password_change email_changed].freeze
   LEASE_DURATION = 5.minutes
   MAX_ATTEMPTS = 8
-  RANSACK_ATTRIBUTES = %w[id user_id team_id kind status attempts next_attempt_at sent_at last_error created_at].freeze
 
   belongs_to :user, optional: true
 
@@ -52,6 +51,14 @@ class MailDelivery < ApplicationRecord
     where(status: 'pending', next_attempt_at: ..Time.current)
       .or(where(status: 'sending', locked_at: ..LEASE_DURATION.ago))
   }
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[status kind team_id user_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
 
   def self.enqueue_devise(user, notification, args = [], event_key: SecureRandom.uuid)
     notification = notification.to_s

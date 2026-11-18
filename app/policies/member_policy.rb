@@ -1,18 +1,19 @@
 # frozen_string_literal: true
 
-class MemberPolicy < TeamAccessPolicy
-  def allowed?(action)
-    member = membership
-    return false unless member && @resource.team_id == @team.id
-    return true if action == :read
-
-    %i[update remove].include?(action) && manageable?(member)
+class MemberPolicy < ApplicationPolicy
+  def show?
+    membership_for(record.team).present?
   end
 
-  private
-
-  def manageable?(member)
+  def update?
+    member = membership_for(record.team)
     roles = { 'owner' => %w[owner admin member viewer], 'admin' => %w[member viewer] }
-    roles.fetch(member.role, []).include?(@resource.role)
+    roles.fetch(member&.role, []).include?(record.role)
+  end
+
+  alias destroy? update?
+
+  def grant_admin?
+    membership_for(record.team)&.owner? == true
   end
 end

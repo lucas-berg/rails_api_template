@@ -31,19 +31,13 @@
 #  username               :string           default("")
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
-#  avatar_document_id     :bigint
 #
 # Indexes
 #
-#  index_users_on_avatar_document_id    (avatar_document_id)
 #  index_users_on_confirmation_token    (confirmation_token) UNIQUE
 #  index_users_on_email                 (email) UNIQUE
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #  index_users_on_uid_and_provider      (uid,provider) UNIQUE
-#
-# Foreign Keys
-#
-#  fk_rails_...  (avatar_document_id => documents.id) ON DELETE => nullify
 #
 
 describe User do

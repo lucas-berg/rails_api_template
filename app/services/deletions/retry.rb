@@ -3,7 +3,7 @@
 module Deletions
   class Retry
     def self.call(actor:, deletion:, reason:, request_id: nil)
-      authorize_retry!(actor, reason)
+      authorize_retry!(actor, deletion, reason)
 
       deletion.with_lock do
         unless deletion.status == 'failed'
@@ -19,8 +19,8 @@ module Deletions
       deletion
     end
 
-    def self.authorize_retry!(actor, reason)
-      raise Authorization::Forbidden unless actor.is_a?(AdminUser) && actor.super_admin?
+    def self.authorize_retry!(actor, deletion, reason)
+      Pundit.authorize(actor, [:admin, deletion], :retry_cleanup?)
       return if reason.to_s.strip.present?
 
       raise Collaboration::Conflict.new('reason_required', 'Provide a reason for retrying deletion')

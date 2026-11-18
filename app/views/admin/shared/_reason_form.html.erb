@@ -1,0 +1,5 @@
+<%= form_with url: url, method: :post, local: true, class: 'admin-action-form' do |form| %>
+  <%= form.label :reason, 'Reason', for: "reason-#{action_name}" %>
+  <%= form.text_field :reason, id: "reason-#{action_name}", required: true, placeholder: 'Explain this operation for the audit history' %>
+  <%= form.submit label, class: 'admin-button' %>
+<% end %>

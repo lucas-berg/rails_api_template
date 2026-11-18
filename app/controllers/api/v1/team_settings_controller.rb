@@ -4,11 +4,12 @@ module API
   module V1
     class TeamSettingsController < TeamContextController
       def show
-        authorize!(:read, @team)
+        authorize @team, :show?
         render_settings
       end
 
       def update
+        authorize @team, :update?
         Teams::Update.new(**operation_options).call(attributes_for(:settings, %i[name timezone locale]))
         render_settings
       end

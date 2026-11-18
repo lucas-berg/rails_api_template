@@ -10,8 +10,6 @@ Rails.application.configure do
   config.good_job.cron = {
     mail_delivery_sweep: { cron: '* * * * *', class: 'SweepMailDeliveriesJob' },
     notification_delivery_sweep: { cron: '* * * * *', class: 'SweepNotificationDeliveriesJob' },
-    documents_cleanup: { cron: '*/10 * * * *', class: 'CleanupDocumentsJob' },
-    data_exports_cleanup: { cron: '0 * * * *', class: 'CleanupDataExportsJob' },
     deletions_sweep: { cron: '* * * * *', class: 'SweepDeletionsJob' }
   }
 end

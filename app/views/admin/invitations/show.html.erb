@@ -1,0 +1,14 @@
+<% content_for :title, "Invitation ##{@invitation.id}" %>
+<%= link_to '← Invitations', admin_invitations_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Invitation #<%= @invitation.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @invitation.id.presence || "—" %></dd></div>
+  <div><dt>Team id</dt><dd><%= @invitation.team_id.presence || "—" %></dd></div>
+  <div><dt>Invited by id</dt><dd><%= @invitation.invited_by_id.presence || "—" %></dd></div>
+  <div><dt>Invitee email</dt><dd><%= @invitation.normalized_email.presence || "—" %></dd></div>
+  <div><dt>Role</dt><dd><%= admin_status(@invitation.role) %></dd></div>
+  <div><dt>Expires at</dt><dd><%= admin_time(@invitation.expires_at) %></dd></div>
+  <div><dt>Accepted at</dt><dd><%= admin_time(@invitation.accepted_at) %></dd></div>
+  <div><dt>Revoked at</dt><dd><%= admin_time(@invitation.revoked_at) %></dd></div>
+  <div><dt>Created at</dt><dd><%= admin_time(@invitation.created_at) %></dd></div>
+</dl></section>

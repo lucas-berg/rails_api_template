@@ -10,9 +10,7 @@ detectors:
     exclude: []
   ControlParameter:
     enabled: true
-    exclude:
-      - 'Ransackable#ransackable_associations'
-      - 'Ransackable#ransackable_attributes'
+    exclude: []
   DataClump:
     enabled: true
     exclude: []

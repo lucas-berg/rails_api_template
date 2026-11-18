@@ -6,7 +6,7 @@ module Users
       deletion = request_deletion
       response.set_header('Location', "/api/v1/deletion_requests/#{deletion.id}")
       render_deletion_accepted(deletion)
-    rescue Authorization::Forbidden => exception
+    rescue Pundit::NotAuthorizedError => exception
       render_deletion_error(exception, 'forbidden', :forbidden)
     rescue Collaboration::Conflict => exception
       render_deletion_error(exception, exception.code, :conflict)

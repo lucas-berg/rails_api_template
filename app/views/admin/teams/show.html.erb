@@ -1,0 +1,21 @@
+<% content_for :title, "Team ##{@team.id}" %>
+<%= link_to '← Teams', admin_teams_path, class: 'admin-back' %>
+<header class="admin-heading"><div><span class="admin-eyebrow">Record details</span><h1>Team #<%= @team.id %></h1></div></header>
+<section class="admin-panel admin-detail-panel"><dl class="admin-details">
+  <div><dt>ID</dt><dd><%= @team.id.presence || "—" %></dd></div>
+  <div><dt>Name</dt><dd><%= @team.name.presence || "—" %></dd></div>
+  <div><dt>Slug</dt><dd><%= @team.slug.presence || "—" %></dd></div>
+  <div><dt>Status</dt><dd><%= admin_status(@team.status) %></dd></div>
+  <div><dt>Locale</dt><dd><%= @team.locale.presence || "—" %></dd></div>
+  <div><dt>Timezone</dt><dd><%= @team.timezone.presence || "—" %></dd></div>
+  <div><dt>Created at</dt><dd><%= admin_time(@team.created_at) %></dd></div>
+  <div><dt>Updated at</dt><dd><%= admin_time(@team.updated_at) %></dd></div>
+  <div><dt>Deleted at</dt><dd><%= admin_time(@team.deleted_at) %></dd></div>
+</dl></section>
+<% if %w[active suspended].include?(@team.status) %>
+  <% if @team.status == 'active' && policy([:admin, @team]).suspend? %>
+    <section class="admin-panel admin-detail-panel"><h2>Suspend access</h2><p>Record the reason for temporarily suspending this team.</p><%= render 'admin/shared/reason_form', url: suspend_admin_team_path(@team), label: 'Suspend team', action_name: 'suspend' %></section>
+  <% elsif @team.status == 'suspended' && policy([:admin, @team]).restore? %>
+    <section class="admin-panel admin-detail-panel"><h2>Restore access</h2><p>Record the reason for restoring this team.</p><%= render 'admin/shared/reason_form', url: restore_admin_team_path(@team), label: 'Restore team', action_name: 'restore' %></section>
+  <% end %>
+<% end %>

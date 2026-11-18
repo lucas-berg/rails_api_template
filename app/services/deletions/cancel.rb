@@ -24,10 +24,10 @@ module Deletions
     private
 
     def verify_actor!
-      authorized = @deletion.requested_by_id == @actor.id && @actor.active_for_authentication?
-      return if authorized && @actor.valid_password?(@password.to_s)
+      Pundit.authorize(@actor, @deletion, :cancel?)
+      return if @actor.valid_password?(@password.to_s)
 
-      raise Authorization::Forbidden
+      raise Pundit::NotAuthorizedError
     end
 
     def cancel

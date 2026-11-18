@@ -5,7 +5,7 @@ module Invitations
     def call(email:, role: 'member')
       within_team do
         invitation = team.invitations.build(normalized_email: email, role:, invited_by: actor)
-        authorize!(:create, invitation)
+        Pundit.authorize(actor, invitation, :create?)
         check_existing!(email.to_s.strip.downcase)
         issue!(invitation)
         audit!('invitation.created', invitation, role:)

@@ -22,7 +22,7 @@ module Platform
     private
 
     def validate!
-      raise Authorization::Forbidden unless @actor.is_a?(AdminUser) && @actor.super_admin?
+      Pundit.authorize(@actor, [:admin, @target], @status == 'suspended' ? :suspend? : :restore?)
       raise ArgumentError, 'A reason is required' if @reason.blank?
       raise ArgumentError, 'Unsupported status change' unless %w[active suspended].include?(@status)
       raise ArgumentError, 'Unsupported resource' unless [User, Team].include?(@target.class)

@@ -11,7 +11,7 @@ module Teams
 
     def self.persist(actor, attributes, request_id)
       team = Team.new(attributes.slice(:name, :locale, :timezone))
-      Authorization.authorize!(actor, :create, team)
+      Pundit.authorize(actor, team, :create?)
       team.save!
       team.members.create!(user: actor, role: 'owner')
       AuditEvent.record!(actor:, action: 'team.created', target: team, team:, request_id:)

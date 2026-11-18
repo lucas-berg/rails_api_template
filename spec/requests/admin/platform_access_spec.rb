@@ -76,12 +76,16 @@ RSpec.describe 'Platform access' do
     expect(team.reload).to be_active
   end
 
-  it 'defaults unknown actions and resources to denied' do
-    adapter = PlatformAuthorization.new(nil, operator)
-    expect(adapter.authorized?(:destroy, team)).to be(false)
-    expect(adapter.authorized?(:create, Setting)).to be(false)
-    expect(adapter.authorized?(:unknown, team)).to be(false)
-    expect(adapter.scope_collection(Setting.all)).to be_empty
+  it 'does not expose bulk operations, hard deletion or unregistered resources' do
+    user = create(:user)
+    sign_in operator
+    delete "/admin/users/#{user.id}"
+    expect(response).to have_http_status(:not_found)
+    post '/admin/users/batch_action', params: { batch_action: 'destroy', collection_selection: [user.id] }
+    expect(response).to have_http_status(:not_found)
+    get '/admin/settings'
+    expect(response).to have_http_status(:not_found)
+    expect(user.reload).to be_persisted
   end
 
   it 'disables automatic CSV and JSON exports rather than merely hiding their links' do
@@ -113,5 +117,27 @@ RSpec.describe 'Platform access' do
                                                          role: 'support', operation_reason: 'Audit test' } }
     }.to raise_error(ActiveRecord::StatementInvalid)
     expect(AdminUser.find_by(email: 'rollback@example.com')).to be_nil
+  end
+
+  it 'rejects blank reasons and renders invalid administrator fields without persisting changes' do
+    sign_in operator
+    post '/admin/admin_users', params: { admin_user: { email: 'new@example.com', password: 'test-password',
+                                                       role: 'support', operation_reason: ' ' } }
+    expect(response).to have_http_status(:bad_request)
+    expect(AdminUser.find_by(email: 'new@example.com')).to be_nil
+    post '/admin/admin_users', params: { admin_user: { email: 'bad-email', password: 'test-password',
+                                                       role: 'unknown', operation_reason: 'Validation check' } }
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.body).to include('Check the following fields')
+  end
+
+  it 'lets support read account details without rendering status change controls' do
+    user = create(:user)
+    sign_in support
+    get "/admin/users/#{user.id}"
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include(user.email)
+    expect(response.parsed_body.css('input[name="reason"]')).to be_empty
+    expect(response.body).not_to include(user.encrypted_password)
   end
 end
