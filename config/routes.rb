@@ -33,6 +33,8 @@ Rails.application.routes.draw do
     end
   end
 
-  mount Rswag::Ui::Engine => '/api-docs'
-  mount Rswag::Api::Engine => '/api-docs'
+  if !Rails.env.production? || (ENV['SWAGGER_USERNAME'].present? && ENV['SWAGGER_PASSWORD'].present?)
+    mount Rswag::Ui::Engine => '/api-docs'
+    mount Rswag::Api::Engine => '/api-docs'
+  end
 end

@@ -1,7 +1,7 @@
 <% content_for :title, "Sign in · Rails API Template" %>
 
 <main class="auth-shell">
-  <div class="auth-layout">
+  <%= turbo_frame_tag "user_authentication", class: "auth-layout", target: "_top" do %>
     <aside class="auth-intro">
       <div class="auth-mark"><span class="auth-mark__icon">✦</span><span>Rails API Template</span></div>
       <h1>Build what matters next.</h1>
@@ -50,5 +50,5 @@
         </nav>
       </div>
     </section>
-  </div>
+  <% end %>
 </main>

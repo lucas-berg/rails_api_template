@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 json.user do
-  json.partial! 'info', user: resource
+  json.partial! 'users/sessions/info', user: resource
 end

@@ -26,8 +26,6 @@ RUN mkdir -p $APP_HOME
 # Setup work directory.
 WORKDIR $APP_HOME
 
-RUN gem install foreman bundler
-
 # Copy dependencies files and install libraries.
 COPY --link package.json yarn.lock .yarnrc.yml ./
 
@@ -35,7 +33,8 @@ RUN corepack enable
 RUN yarn install --immutable && yarn cache clean
 
 COPY --link Gemfile Gemfile.lock .ruby-version ./
-RUN bundle install -j 4
+RUN gem install --no-document foreman "bundler:$(awk '/^BUNDLED WITH$/ { getline; print $1 }' Gemfile.lock)" && \
+    bundle install -j 4
 
 COPY --link . .
 

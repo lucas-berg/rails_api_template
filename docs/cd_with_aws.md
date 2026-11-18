@@ -73,3 +73,5 @@ Before you start, make sure you have the following:
          - main
          - dev
    ```
+
+Set the GitHub environment variable `SSM_PARAMETER_PATH` to that environment’s Parameter Store hierarchy if the workflow should inject secrets. Leave it empty to keep the secrets in the ECS task definition.

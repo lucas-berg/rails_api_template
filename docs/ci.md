@@ -12,7 +12,7 @@ The CI process includes:
 5. Checking for missing annotations
 6. Linting Dockerfiles
 7. Building Docker images
-8. Generating and updating API documentation
+8. Verifying the committed API documentation
 
 ## CI Setup Requirements
 
@@ -60,11 +60,6 @@ It is now scheduled for February 31 so will never run.
 If the branch exists or the PR is already created the workflow will fail.
 In your repository settings -> actions -> general ->  Workflow permissions we need to allow read / write permissions and mark the option allow Github action to create PR, other case the workflow will fail.
 
-## Coverage
-When splitting tests in different nodes, each report covers only a part of the code files being tested.
-For this reason a job in the CI is added to sums coverages from all nodes to be used by SimpleCov. This job will be executed after all nodes have finished and will send the final report to CodeClimate.
+## Coverage and API documentation
 
-For the case of CPU cores we do not need to add extra configuration since the report of each node contains the info of all the cores that have been splited.
-
-## Build production Docker image
-As part of our CI process, we introduced a job called Docker that builds a Docker image using the `Dockerfile` that is part of this repository. This job helps us to guarantee the code we are trying to merge produces a valid Docker image and can be safely released to production.
+Each test node uploads its coverage report as a workflow artifact. CI builds the production image and starts the development stack to check its HTTP status endpoint. The API request specs also generate a fresh OpenAPI contract for comparison with the committed document.

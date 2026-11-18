@@ -6,14 +6,14 @@
 //
 // For example, to change the sidebar width:
 // $sidebar-width: 242px;
-$fa-font-path: ".";
+@use '@fortawesome/fontawesome-free/scss/variables' with ($font-path: '.');
+@use '@fortawesome/fontawesome-free/scss/fontawesome';
+@use '@fortawesome/fontawesome-free/scss/solid';
 
 // Active Admin's got SASS!
 // Arctic Admin 4.4.1 ships this variable separately from its main bundle.
 @import 'arctic_admin/src/scss/variables/box_shadows';
 @import 'arctic_admin/src/scss/main';
-@import '@fortawesome/fontawesome-free/scss/fontawesome.scss';
-@import '@fortawesome/fontawesome-free/scss/solid.scss';
 
 // Overriding any non-variable Sass must be done after the fact.
 // For example, to change the default status-tag color:

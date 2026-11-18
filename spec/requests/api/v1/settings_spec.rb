@@ -5,6 +5,8 @@ require 'rails_helper'
 describe 'GET api/v1/settings/must_update' do
   subject { get must_update_api_v1_settings_path, params: }
 
+  before { Setting.where(key: 'min_version').delete_all }
+
   let(:params) do
     {
       device_version: '1.0'
@@ -31,6 +33,15 @@ describe 'GET api/v1/settings/must_update' do
     it 'returns it needs to update' do
       subject
       expect(json['must_update']).to be(true)
+    end
+  end
+
+  context 'with an invalid device version' do
+    let(:params) { { device_version: 'unreleased' } }
+
+    it 'returns a client error' do
+      subject
+      expect(response).to have_http_status(:bad_request)
     end
   end
 

@@ -5,24 +5,24 @@
 # Table name: users
 #
 #  id                     :integer          not null, primary key
+#  allow_password_change  :boolean          default(FALSE), not null
+#  current_sign_in_at     :datetime
+#  current_sign_in_ip     :inet
 #  email                  :string
 #  encrypted_password     :string           default(""), not null
-#  reset_password_token   :string
-#  reset_password_sent_at :datetime
-#  allow_password_change  :boolean          default(FALSE), not null
-#  sign_in_count          :integer          default(0), not null
-#  current_sign_in_at     :datetime
-#  last_sign_in_at        :datetime
-#  current_sign_in_ip     :inet
-#  last_sign_in_ip        :inet
 #  first_name             :string           default("")
 #  last_name              :string           default("")
+#  last_sign_in_at        :datetime
+#  last_sign_in_ip        :inet
+#  provider               :string           default("email"), not null
+#  reset_password_sent_at :datetime
+#  reset_password_token   :string
+#  sign_in_count          :integer          default(0), not null
+#  tokens                 :json
+#  uid                    :string           default(""), not null
 #  username               :string           default("")
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
-#  provider               :string           default("email"), not null
-#  uid                    :string           default(""), not null
-#  tokens                 :json
 #
 # Indexes
 #
@@ -35,7 +35,7 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable, :jwt_authenticatable,
-         :recoverable, :trackable, :validatable, jwt_revocation_strategy: Devise::JWT::RevocationStrategies::Null
+         :recoverable, :trackable, :validatable, jwt_revocation_strategy: JwtDenylist
 
   validates :uid, uniqueness: { scope: :provider }
 
@@ -46,10 +46,16 @@ class User < ApplicationRecord
                           created_at updated_at].freeze
 
   def self.from_social_provider(provider, user_params)
-    where(provider:, uid: user_params['id']).first_or_create! do |user|
+    attributes = user_params.with_indifferent_access
+    uid = attributes[:id].presence || attributes.fetch(:uid)
+    find_or_create_by!(provider:, uid:) do |user|
       user.password = Devise.friendly_token[0, 20]
-      user.assign_attributes user_params.except('id')
+      user.assign_attributes attributes.slice(:email, :username, :first_name, :last_name)
     end
+  end
+
+  def serializable_hash(options = nil)
+    super.except('tokens', 'allow_password_change')
   end
 
   def full_name
@@ -61,6 +67,8 @@ class User < ApplicationRecord
   private
 
   def init_uid
-    self.uid = email if uid.blank? && provider == 'email'
+    return unless provider == 'email'
+
+    self.uid = email if uid.blank? || (will_save_change_to_email? && uid == email_in_database)
   end
 end

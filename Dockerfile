@@ -40,7 +40,8 @@ WORKDIR $APP_HOME
 COPY --link Gemfile Gemfile.lock package.json yarn.lock .yarnrc.yml .ruby-version ./
 
 RUN corepack enable
-RUN gem install bundler && bundle install -j 4
+RUN gem install --no-document --version "$(awk '/^BUNDLED WITH$/ { getline; print $1 }' Gemfile.lock)" bundler && \
+    bundle install -j 4
 RUN yarn install --immutable && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
@@ -69,6 +70,7 @@ COPY --link . .
 COPY --from=builder $APP_HOME/public/ $APP_HOME/public/
 COPY --from=builder $APP_HOME/tmp/ $APP_HOME/tmp/
 COPY --from=builder $APP_HOME/vendor/ $APP_HOME/vendor/
+COPY --from=builder /usr/local/bundle/ /usr/local/bundle/
 
 RUN ln -s /usr/lib/*-linux-gnu/libjemalloc.so.2 /usr/lib/libjemalloc.so.2
 

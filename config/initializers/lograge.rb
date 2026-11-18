@@ -9,8 +9,6 @@ Rails.application.configure do
       current_user_id: controller.current_user&.id,
       host: request.host,
       path: request.path,
-      query_string: request.query_string,
-      referer: request.referer,
       user_agent: request.user_agent,
       remote_ip: request.remote_ip
     }

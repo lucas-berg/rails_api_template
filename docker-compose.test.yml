@@ -18,10 +18,12 @@ services:
       SELENIUM_BROWSER_HOST: http://chrome-server:4444
       HEADLESS: true
       RAILS_ENV: test
+      DOCKER_ENABLED: "false"
     tty: true
     stdin_open: true
     volumes:
       - .:/src/app
+      - test_node_modules:/src/app/node_modules
     depends_on:
       - db
       - chrome-server
@@ -33,3 +35,5 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
+volumes:
+  test_node_modules:

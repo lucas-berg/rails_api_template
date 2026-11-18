@@ -1,94 +1,60 @@
 #!/usr/bin/env bash
-
-die () {
-  echo >&2 "$@"
-  exit 1
-}
+set -euo pipefail
 
 usage() {
-cat << EOF
-Usage: $0 --name=<project-name> -[vhd]
-
--h, --help                  Display help
-
--n, --name                  Project name
-
--d, --for-docker            Run bootstrap to run project with Docker
-
--v, --verbose               Run script in verbose mode. Will print out each step of execution.
-
-EOF
+  echo "Usage: $0 --name=project_name [--for-docker] [--verbose]"
 }
 
-docker=0
+cd "$(dirname "$0")/.."
 project_name=""
-
-while getopts n:vhd-: OPT; do
-  if [ "$OPT" = "-" ]; then   # long option: reformulate OPT and OPTARG
-    OPT="${OPTARG%%=*}"       # extract long option name
-    OPTARG="${OPTARG#$OPT}"   # extract long option argument (may be empty)
-    OPTARG="${OPTARG#=}"      # if long option argument, remove assigning `=`
-  fi
-  case "$OPT" in
-    n|name)
-      project_name="$OPTARG"
-      ;;
-    d|for-docker)
-      [ -n $(which docker-compose) ] || die "$OPTARG was specified but docker-compose is not installed. Please install docker-compose to run bootstrap for docker"
-      docker=1
-      ;;
-    h|help)
-      usage
-      exit 0
-      ;;
-    v|verbose)
-      set -exu
-      ;;
-    *)
-      die "Invalid option: run $0 --help for more information"
-      ;;
+use_docker=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --name=*) project_name="${1#*=}" ;;
+    -n|--name) project_name="${2:?Missing project name}"; shift ;;
+    -n?*) project_name="${1#-n}" ;;
+    -d|--for-docker) use_docker=true ;;
+    -v|--verbose) set -x ;;
+    -h|--help) usage; exit 0 ;;
+    *) usage >&2; exit 1 ;;
   esac
+  shift
 done
-shift $((OPTIND-1))
 
-if [[ -z $project_name ]]; then
-  die "Please specify the project name. Run $0 --help for more information"
+if [[ ! "$project_name" =~ ^[a-z][a-z0-9_-]*$ ]]; then
+  echo "Use a project name starting with a lowercase letter, followed by letters, digits, underscores or hyphens." >&2
+  exit 1
 fi
 
-# generate a .env from the sample file
-cp .env.sample .env
+if "$use_docker"; then
+  docker compose version >/dev/null
+fi
 
-# sed command implementation is different for GNU and macOS
-sed_i() {
-  if [[ $OSTYPE == 'darwin'* ]]; then
-    sed -i '' $@
+while IFS= read -r -d '' file; do
+  PROJECT_NAME="$project_name" perl -pi -e 's/rails_api_template/$ENV{PROJECT_NAME}/g' "$file"
+done < <(git grep -Ilz --fixed-strings rails_api_template -- '*.yml' '*.yaml' '*.erb' '*.rb' '*.json' '*.tf' yarn.lock .env.sample)
+
+# Yarn sorts workspace names in its lockfile. Re-serialize it after renaming
+# the root package, then use immutable installs for setup and image builds.
+if "$use_docker"; then
+  docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/src" -w /src \
+    -e COREPACK_HOME=/tmp/corepack -e YARN_CACHE_FOLDER=/tmp/yarn-cache \
+    -e YARN_ENABLE_IMMUTABLE_INSTALLS=false "node:$(cat .nvmrc)" \
+    corepack yarn install --mode=update-lockfile
+else
+  YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install --mode=update-lockfile
+fi
+
+[[ -f .env ]] || cp .env.sample .env
+if "$use_docker"; then
+  if grep -q '^DOCKER_ENABLED=' .env; then
+    perl -pi -e 's/^DOCKER_ENABLED=.*/DOCKER_ENABLED=true/' .env
   else
-    sed -i $@
+    printf '\nDOCKER_ENABLED=true\n' >> .env
   fi
-}
-
-# Export the function to make it available to the find command
-export -f sed_i
-
-# Define the file types to search for
-file_types=("yml" "yaml" "erb" "rb" "json" "tf")
-
-for file_type in "${file_types[@]}"
-do
-  # Find and replace the string in files of the current type
-  find . -name "*.$file_type" -type f -exec bash -c 'sed_i "s|rails_api_template|'"$project_name"'|g" "$0"' {} \;
-done
-
-echo "Replacement completed successfully."
-
-# spin up docker services if flag is specified for the setup to take place inside the containers
-if [[ $docker -eq 1 ]]; then
-  # Update DOCKER_ENABLED variable in .env
-  sed_i "s/DOCKER_ENABLED=false/DOCKER_ENABLED=true/g" .env
-
-  # build and spin up containers
-  docker-compose up --build --detach
+  docker compose build web
+  docker compose run --rm web ./bin/setup --skip-server
+  exec docker compose up --detach
 fi
 
-# install ruby gems
-bin/setup
+exec ./bin/setup --skip-server

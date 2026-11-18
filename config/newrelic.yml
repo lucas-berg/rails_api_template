@@ -18,7 +18,7 @@ common: &default_settings
   app_name: <%= ENV.fetch('NEW_RELIC_APP_NAME', 'rails_api_template - unknown env') %>
 
   # This config disables the agent regardless of other settings.
-  agent_enabled: <%= ENV['NEW_RELIC_API_KEY'].present? %>
+  agent_enabled: <%= ENV['NEW_RELIC_LICENSE_KEY'].present? %>
 
   # Logging level for log/newrelic_agent.log; options are error, warn, info, or
   # debug.

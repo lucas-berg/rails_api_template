@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-echo "Running release script" &&
-  bundle exec rails feature_flags:initialize
+set -euo pipefail
+bundle exec rails db:prepare feature_flags:initialize

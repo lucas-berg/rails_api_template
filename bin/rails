@@ -1,10 +1,12 @@
 #!/usr/bin/env ruby
 
-require 'shellwords'
 require_relative 'helpers'
 
 if running_with_docker?
-  exec "bin/web './bin/rails #{Shellwords.join(ARGV)}'"
+  if %w[server s].include?(ARGV.first)
+    exec 'docker', 'compose', 'run', '--rm', '--service-ports', 'web', 'bin/rails', *ARGV
+  end
+  exec 'bin/web', 'bin/rails', *ARGV
 else
   APP_PATH = File.expand_path('../config/application', __dir__)
   require_relative '../config/boot'

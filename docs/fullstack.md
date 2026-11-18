@@ -1,22 +1,27 @@
-# Fullstack
-## Context
-The `rails_api_template` was originally created to be used as a backend API, but it evolved to be more than just that, and now it is also intended to be used for Rails Fullstack apps.
+# Component development
 
-## Stack
-The chosen stack is:
-- [Hotwire](https://hotwired.dev) as the frontend framework, including [Turbo](https://turbo.hotwired.dev) and [Stimulus](https://stimulus.hotwired.dev).
-- [Tailwind](https://tailwindcss.com) as the CSS framework.
-- [ViewComponent](https://viewcomponent.org) as the components framework, along with  [Lookbook](https://lookbook.build) for a beautiful dev UI environment.
+Turbo, Stimulus, Tailwind CSS and DaisyUI are available in the base application. The optional Rails template adds ViewComponent, RSpec component helpers and a development-only Lookbook at `/lookbook`.
 
-## Setup
-In order to setup the `rails_api_template` for fullstack development, run
-```bash
+## Install
+
+From the project root, run the template and restart the development server.
+
+```sh
 bin/rails app:template LOCATION=./bin/fullstack.rb
+bin/dev
 ```
-in the root of the project and it will automatically install and configure everything you need.
 
-## Setup with Docker
-If you want to use Docker and also want the example component to be created, you'll need to run this command so the RSpec test passes.
-```bash
-docker compose -f docker-compose.test.yml run --build web ./bin/rails app:template LOCATION=./bin/fullstack.rb && docker compose -f docker-compose.test.yml down
+For Docker development, run the template in the web container. Rebuild the image to include the updated bundle.
+
+```sh
+docker compose run --rm web ./bin/rails app:template LOCATION=./bin/fullstack.rb
+docker compose up --build
 ```
+
+Answer `y` to generate an example button with a Stimulus controller, a Lookbook preview and a rendering spec. Run its spec with `bundle exec rspec spec/components/example/component_spec.rb`. Open the example in Lookbook to try the button. Answer `n` to install the component tooling alone.
+
+## Add components
+
+Put component classes and ERB templates in `app/components`. Register any component Stimulus controllers in `app/javascript/controllers/index.js`. The customer-facing Tailwind stylesheet scans the component directory.
+
+Put preview classes in `spec/components/previews` and tag rendering specs with `type: :component`.

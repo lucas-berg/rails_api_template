@@ -9,13 +9,13 @@ class ReorderGoodJobsCronIndex < ActiveRecord::Migration[8.1]
   def up
     return if cron_index_has_expected_order?
 
-    add_index :good_jobs, [:cron_key, :cron_at],
-      name: REPLACEMENT_INDEX,
-      order: { cron_at: "DESC NULLS LAST" },
-      where: "cron_key IS NOT NULL",
-      unique: true,
-      algorithm: :concurrently,
-      if_not_exists: true
+    add_index :good_jobs, %i[cron_key cron_at],
+              name: REPLACEMENT_INDEX,
+              order: { cron_at: 'DESC NULLS LAST' },
+              where: 'cron_key IS NOT NULL',
+              unique: true,
+              algorithm: :concurrently,
+              if_not_exists: true
     remove_index :good_jobs, name: CURRENT_INDEX, algorithm: :concurrently, if_exists: true
     rename_index :good_jobs, REPLACEMENT_INDEX, CURRENT_INDEX
   end
@@ -23,12 +23,12 @@ class ReorderGoodJobsCronIndex < ActiveRecord::Migration[8.1]
   def down
     return if cron_index_definition && !cron_index_has_expected_order?
 
-    add_index :good_jobs, [:cron_key, :cron_at],
-      name: REPLACEMENT_INDEX,
-      where: "cron_key IS NOT NULL",
-      unique: true,
-      algorithm: :concurrently,
-      if_not_exists: true
+    add_index :good_jobs, %i[cron_key cron_at],
+              name: REPLACEMENT_INDEX,
+              where: 'cron_key IS NOT NULL',
+              unique: true,
+              algorithm: :concurrently,
+              if_not_exists: true
     remove_index :good_jobs, name: CURRENT_INDEX, algorithm: :concurrently, if_exists: true
     rename_index :good_jobs, REPLACEMENT_INDEX, CURRENT_INDEX
   end
@@ -36,7 +36,7 @@ class ReorderGoodJobsCronIndex < ActiveRecord::Migration[8.1]
   private
 
   def cron_index_has_expected_order?
-    cron_index_definition&.include?("cron_at DESC NULLS LAST")
+    cron_index_definition&.include?('cron_at DESC NULLS LAST')
   end
 
   def cron_index_definition

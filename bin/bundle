@@ -9,12 +9,11 @@
 #
 
 require 'rubygems'
-require 'shellwords'
 require_relative 'helpers'
 require_relative 'bundler'
 
 if running_with_docker?
-  exec "bin/web 'bin/bundle #{Shellwords.join(ARGV)}'"
+  exec 'bin/web', 'bin/bundle', *ARGV
 else
   load Gem.bin_path('bundler', 'bundle')
 end

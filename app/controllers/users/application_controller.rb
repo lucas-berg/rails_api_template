@@ -1,14 +1,17 @@
 # frozen_string_literal: true
 
 module Users
-  class ApplicationController < ApplicationController
-    respond_to :json, :html
-    before_action :configure_permitted_parameters, if: :devise_controller?
-    skip_before_action :verify_authenticity_token, if: :devise_controller?
+  class ApplicationController < ::ApplicationController
+    include API::Concerns::ActAsAPIRequest
 
-    def configure_permitted_parameters
-      devise_parameter_sanitizer.permit(:sign_up, keys: %i[name avatar])
-      devise_parameter_sanitizer.permit(:account_update, keys: %i[name avatar])
+    respond_to :json, :html
+
+    private
+
+    def process_action(...)
+      # Devise prepends authentication callbacks, so isolate the session before the callback chain starts.
+      use_stateless_session if devise_controller? && resource_name == :user && request.format.json?
+      super
     end
   end
 end

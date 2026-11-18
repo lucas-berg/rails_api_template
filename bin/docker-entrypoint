@@ -1,12 +1,13 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-# If running the rails server then create or migrate existing database
-if ([ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]) || [ "${1}" == "./bin/dev" ] || [[ $@ == *"bundle exec puma"* ]]; then
+if [[ "${RAILS_ENV:-}" == test || "${1:-}" == ./bin/rspec ]]; then
+  ./bin/rails db:prepare
+  if [[ "${1:-}" == ./bin/rspec ]]; then
+    ./bin/rails assets:precompile
+  fi
+elif [[ "${1:-}" == ./bin/dev || "${1:-} ${2:-}" == './bin/rails server' || "${1:-} ${2:-} ${3:-}" == 'bundle exec puma' ]]; then
   ./bin/rails db:prepare
 fi
 
-if [ "${1}" == "./bin/rspec" ] || [ "${RAILS_ENV}" == "test" ]; then
-  ./bin/rails db:test:prepare
-fi
-
-exec "${@}"
+exec "$@"

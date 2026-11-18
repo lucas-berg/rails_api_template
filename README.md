@@ -23,7 +23,6 @@ This template comes with:
   - Sign in with user credentials (`POST /users/sign_in`)
   - Sign out (`DELETE /users/sign_out`)
   - Reset password (`POST /users/password`, `PUT /users/password`)
-  - Email confirmations
 - **User Profile**
   - Get current user (`GET /api/v1/user`)
   - Update current user (`PUT /api/v1/user`)
@@ -38,7 +37,6 @@ This template comes with:
 - Admin user management
 - Feature flag management UI (`/admin/feature-flags`)
 - Background job monitoring (`/admin/jobs` - GoodJob dashboard)
-- PgHero database performance monitoring
 
 ### Infrastructure & Tools
 - **Authentication**: Devise + Devise-JWT for token-based auth
@@ -48,7 +46,7 @@ This template comes with:
 - **Feature Flags**: Flipper with ActiveRecord adapter
 - **Pagination**: Pagy (high-performance pagination)
 - **Search/Filtering**: Ransack for query building
-- **Error Tracking**: Sentry for production monitoring
+- **Error Tracking**: Sentry Ruby SDK for application instrumentation
 - **Performance Monitoring**: New Relic APM
 - **Code Quality**: RuboCop, Reek, Rails Best Practices, Brakeman
 - **Testing**: RSpec with comprehensive coverage
@@ -64,16 +62,6 @@ This template comes with:
    ```bash
    ./bin/bootstrap.sh --name=my_awesome_project
    ```
-1. Install dependencies and build assets:
-   ```bash
-   bundle install
-   yarn install
-   yarn build
-   ```
-1. Set up the database:
-   ```bash
-   bin/rails db:create db:migrate db:seed
-   ```
 1. (Optional) Run tests to verify everything works:
    ```bash
    bundle exec rspec
@@ -86,7 +74,7 @@ This template comes with:
    ```
    This starts both the Rails server and watches for JS/CSS changes.
 1. Access the application:
-   - **API**: http://localhost:3000/api/v1
+   - **API**: http://localhost:3000/api/v1/status
    - **Admin Panel**: http://localhost:3000/admin
    - **API Documentation**: http://localhost:3000/api-docs
    - **Feature Flags**: http://localhost:3000/admin/feature-flags (requires admin login)
@@ -94,7 +82,7 @@ This template comes with:
 
 ## How to use with Docker
 
-1. Have `docker` and `docker-compose` installed (You can check this by doing `docker -v` and `docker-compose -v`)
+1. Install Docker with the Compose plugin (`docker compose version`).
 1. Run `bootstrap.sh` with the name of your project and the `-d` or `--for-docker` flag like `./bin/bootstrap.sh --name=my_awesome_project -d`
     1. Run `./bin/bootstrap.sh --help` for the full details.
 1. (Optional) If you want to deny access to the database from outside of the `docker-compose` network, remove the `ports` key in the `docker-compose.yml` from the `db` service.
@@ -288,9 +276,10 @@ The OpenAPI spec is automatically generated from RSpec request specs using RSpec
 
 ```bash
 # Run specs to generate/update OpenAPI documentation
-OPENAPI=1 bundle exec rspec spec/requests
+rm -f tmp/openapi-local.yaml
+OPENAPI=1 OPENAPI_OUTPUT=tmp/openapi-local.yaml bundle exec rspec spec/requests/api --order defined
 
-# The generated spec is saved to doc/openapi.yaml
+# Review the fresh specification and copy it to doc/openapi.yaml
 ```
 
 ### Writing API Tests
@@ -414,22 +403,11 @@ Configuration: `config/newrelic.yml`
 
 ### Sentry Error Tracking
 
-Track and debug production errors:
-
-1. Create project at [Sentry.io](https://sentry.io)
-2. Set environment variable:
-   ```bash
-   SENTRY_DSN=your_sentry_dsn
-   ```
-3. Errors are automatically captured and reported
+The template includes `sentry-ruby`. Configure Sentry in an application initializer and instrument the operations you want to report.
 
 ### Database Performance (PgHero)
 
-Monitor database performance at `/admin` (requires admin login):
-- Query performance
-- Index usage
-- Slow queries
-- Database size metrics
+PgHero is installed. Mount its dashboard behind your application's admin authentication if you want to expose it.
 
 ### Background Job Monitoring
 
@@ -533,7 +511,7 @@ See [Feature Flags documentation](docs/feature_flags.md) for more details.
    RSpec.describe 'Articles API', type: :request do
      describe 'GET /api/v1/articles' do
        it 'returns articles' do
-         get '/api/v1/articles', headers: auth_headers
+         get '/api/v1/articles', headers: auth_headers(create(:user))
          expect(response).to have_http_status(:ok)
        end
      end
@@ -542,20 +520,14 @@ See [Feature Flags documentation](docs/feature_flags.md) for more details.
 
 ### Authentication Flow
 
-**For API clients:**
+Send JSON with `Content-Type: application/json` and `Accept: application/json`.
 
-1. **Sign Up**: `POST /users` with user credentials
-2. **Sign In**: `POST /users/sign_in` → Returns JWT token in headers
-3. **Use Token**: Include token in subsequent requests:
-   ```
-   Authorization: Bearer <access-token>
-   ```
-4. **Sign Out**: `DELETE /users/sign_out`
+1. Register with `POST /users` and sign in with `POST /users/sign_in`.
+2. Read the `Authorization: Bearer <token>` response header after sign-in. Send it on requests to `/api/v1/user`.
+3. To change the account email through the profile API, include `current_password` in the `user` object.
+4. Send the same header to `DELETE /users/sign_out` to revoke that token. Other devices keep their own sessions.
 
-**JWT Headers returned after sign in:**
-- `authorization`: Bearer token
-- `uid`: User identifier
-- `client`: Client identifier
+HTML forms use the browser session and Rails CSRF tokens. Configure `JWT_SECRET_KEY` with a secret generated by `bin/rails secret`. Existing deployments use `SECRET_KEY_BASE` until a dedicated JWT key is supplied. Changing the signing key requires API clients to sign in again.
 
 ### Creating Background Jobs
 
@@ -614,7 +586,7 @@ heroku run rails console
 docker build -t rails-api .
 
 # Run with docker-compose
-docker-compose up
+docker compose up
 ```
 
 See [Docker documentation](docs/docker.md) for more details.

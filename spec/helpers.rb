@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'devise/jwt/test_helpers'
+
 module Helpers
   # Helper method to parse a response
   #
@@ -8,7 +10,7 @@ module Helpers
     JSON.parse(response.body).with_indifferent_access
   end
 
-  def auth_headers
-    user.create_new_auth_token
+  def auth_headers(user)
+    Devise::JWT::TestHelpers.auth_headers({}, user)
   end
 end

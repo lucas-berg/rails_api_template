@@ -1,12 +1,10 @@
 #!/usr/bin/env ruby
 require 'rubygems'
-require 'shellwords'
 require_relative 'helpers'
 
-ARGV.unshift('--ensure-latest')
-
 if running_with_docker?
-  exec "bin/web 'bin/brakeman #{Shellwords.join(ARGV)}'"
+  exec 'bin/web', 'bin/brakeman', *ARGV
 else
+  ARGV.unshift('--ensure-latest')
   load Gem.bin_path('brakeman', 'brakeman')
 end

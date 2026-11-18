@@ -6,17 +6,12 @@ Devise.setup do |config|
   # Set Devise secret_key
   config.secret_key = Rails.application.secret_key_base
   config.jwt do |jwt|
-    jwt.expiration_time = 3600 * 24 * 10
-    jwt.secret = Rails.application.secret_key_base
-    jwt.request_formats = {
-      user: [:json]
-    }
-    jwt.dispatch_requests = [
-      ['POST', %r{users/sign_in}]
-    ]
-    # jwt.revocation_requests = [
-    #   ['DELETE', %r{users/logout}]
-    # ]
+    jwt.expiration_time = 10.days.to_i
+    jwt.secret = ENV['JWT_SECRET_KEY'].presence || Rails.application.secret_key_base
+    jwt.request_formats = { user: [:json] }
+    # Support JSON negotiated via headers as well as the generated .json routes.
+    jwt.dispatch_requests = [['POST', %r{\A/users/sign_in\z}]]
+    jwt.revocation_requests = [['DELETE', %r{\A/users/sign_out\z}]]
   end
 
   # ==> Mailer Configuration
@@ -90,7 +85,7 @@ Devise.setup do |config|
   # It will change confirmation, password recovery and other workflows
   # to behave the same regardless if the e-mail provided was right or wrong.
   # Does not affect registerable.
-  # config.paranoid = true
+  config.paranoid = true
 
   # By default Devise will store the user in session. You can skip storage for
   # particular strategies by setting this option.

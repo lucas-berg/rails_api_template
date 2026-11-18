@@ -6,6 +6,7 @@ module API
       include API::Concerns::ActAsAPIRequest
       include Pagy::Method
 
+      before_action :use_stateless_session
       before_action :authenticate_user!
 
       rescue_from ActiveRecord::RecordNotFound,        with: :render_not_found
