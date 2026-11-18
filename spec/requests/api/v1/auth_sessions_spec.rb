@@ -7,16 +7,19 @@ RSpec.describe 'API sessions', openapi: { security: [{ 'BearerAuth' => [] }] } d
   let!(:headers) { auth_headers(user) }
 
   it 'lists only the current user active sessions without token identifiers' do
+    user.auth_sessions.sole.update!(user_agent: 'TestClient/1.0', ip_address: '203.0.113.9')
     other = create(:user)
     auth_headers(other)
     get api_v1_auth_sessions_path, headers: headers
 
     expect(response).to have_http_status(:ok)
     expect(json.fetch(:data).pluck(:id)).to eq(user.auth_sessions.pluck(:id))
-    expect(json.fetch(:data).first.keys).to match_array(%w[id created_at expires_at last_used_at])
+    expect(json.fetch(:data).first.keys).to match_array(%w[id created_at expires_at last_used_at user_agent ip_address])
+    expect(json.fetch(:data).first).to include(user_agent: 'TestClient/1.0', ip_address: '203.0.113.9')
   end
 
-  it 'revokes another API session without signing out this one' do
+  it 'revokes another API session without signing out this one',
+     openapi: { request_pattern: 'DELETE /api/v1/auth_sessions/{id}' } do
     other_headers = auth_headers(user)
     session = user.auth_sessions.order(:id).last
     delete api_v1_auth_session_path(session), headers: headers

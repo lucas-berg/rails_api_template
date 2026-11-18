@@ -5,7 +5,7 @@ module API
     class AuthSessionsController < SaasController
       def index
         render_collection(current_user.auth_sessions.active) do |session|
-          session.as_json(only: %i[id created_at expires_at last_used_at])
+          session.as_json(only: %i[id created_at expires_at last_used_at user_agent ip_address])
         end
       end
 

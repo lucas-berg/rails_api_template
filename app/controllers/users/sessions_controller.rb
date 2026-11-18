@@ -25,7 +25,8 @@ module Users
 
     def register_api_session(user)
       token = request.env.fetch(Warden::JWTAuth::Hooks::PREPARED_TOKEN_ENV_KEY)
-      AuthSession.register!(user, Warden::JWTAuth::TokenDecoder.new.call(token))
+      context = { user_agent: request.user_agent, ip_address: request.remote_ip }
+      AuthSession.register!(user, Warden::JWTAuth::TokenDecoder.new.call(token), context:)
     end
 
     def omit_browser_token

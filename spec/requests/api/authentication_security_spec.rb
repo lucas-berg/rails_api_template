@@ -33,6 +33,26 @@ RSpec.describe 'Account security', openapi: false do
     expect(response).to have_http_status(:unauthorized)
   end
 
+  it 'records request device metadata and exposes it only through the owner session list' do
+    post user_session_path,
+         params: { user: { email: user.email, password: user.password,
+                           user_agent: 'forged-body-agent', ip_address: '198.51.100.40' } },
+         headers: { 'User-Agent' => 'ExampleClient/1.0', 'REMOTE_ADDR' => '203.0.113.7' }, as: :json
+    expect(response).to have_http_status(:ok)
+    token = response.headers.fetch('Authorization')
+    session = user.auth_sessions.sole
+    expect(session.user_agent).to eq('ExampleClient/1.0')
+    expect(session.ip_address.to_s).to eq('203.0.113.7')
+
+    get api_v1_auth_sessions_path, headers: { 'Authorization' => token }
+    expect(json.fetch(:data).first).to include(user_agent: 'ExampleClient/1.0', ip_address: '203.0.113.7')
+
+    other = create(:user)
+    get api_v1_auth_sessions_path, headers: auth_headers(other)
+    expect(json.fetch(:data).pluck(:id)).not_to include(session.id)
+    expect(response.body).not_to include('ExampleClient/1.0', '203.0.113.7')
+  end
+
   it 'does not create API sessions for HTML sign-ins' do
     expect {
       post user_session_path, params: { user: { email: user.email, password: user.password } }

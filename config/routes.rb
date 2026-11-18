@@ -37,7 +37,7 @@ Rails.application.routes.draw do
           get :download, on: :member
           get :preview, on: :member
         end
-        resource :avatar, only: %i[update destroy]
+        resource :avatar, only: %i[show update destroy]
         resource :dashboard, only: :show, controller: 'team_dashboards'
         resource :onboarding, only: :show, controller: 'team_onboarding'
         resources :exports, controller: 'data_exports', only: %i[index create show] do
