@@ -4,12 +4,11 @@
 
 Rails API Base is a boilerplate project for JSON RESTful APIs. It follows community best practices in terms of standards, security, and maintainability, integrating a comprehensive suite of testing and code quality tools. Built on Rails 8.1 and Ruby 3.3.13.
 
-
 The SaaS foundation uses **Team** as the tenant and **Member** for team roles, with Pundit policies and scopes; Devise/JWT handles authentication. The [five-step implementation plan](doc/saas-implementation-plan.md), [operations guide](doc/saas-operations.md), and [data lifecycle runbook](doc/saas-data-lifecycle.md) and [validation record](doc/saas-validation.md) describe the supported flows and recovery procedures. Billing, commercial quotas, API keys, webhooks, enterprise SSO, and business data imports remain outside this implementation.
 
 ## Features
 
-The current revision removes file uploads, avatars and business exports, replaces ActiveAdmin with a custom `/admin`, and adopts Pundit authorization. Implementation and verification follow the [updated plan](doc/saas-implementation-plan.md); previous verification results are historical.
+The current revision removes file uploads, avatars and business exports, replaces ActiveAdmin with a custom `/admin`, adopts Pundit authorization, and retains Ransack for admin search. Searches run within Pundit scopes using explicit model field allowlists. Implementation and verification follow the [updated plan](doc/saas-implementation-plan.md); previous verification results are historical.
 
 This template comes with:
 
@@ -42,6 +41,7 @@ This template comes with:
 - **Internal Features**
   - Team notifications, dashboard and onboarding under `/api/v1/teams/:team_id`
   - Own security notifications and notification preferences under `/api/v1`
+- **Account and Team Deletion**
   - Request account or team deletion, query/cancel own requests under `/api/v1/deletion_requests/:id`
   - `DELETE /users` schedules account deletion and requires `current_password`; it does not immediately destroy the account
 - **Health Check**
@@ -55,7 +55,7 @@ New SaaS endpoints return `{ data, meta }` and structured errors with `request_i
 - User management interface
 - Admin user management
 - Read-only support access; reasoned and audited super_admin operations
-- Sensitive tokens, encrypted mail payloads and storage keys are excluded; automatic CSV/JSON admin exports are disabled
+- Sensitive tokens, encrypted mail payloads and delivery leases are excluded; automatic CSV/JSON admin exports are disabled
 - Feature flag management UI (`/admin/feature-flags`, super_admin only)
 - Background job monitoring (`/admin/jobs` - GoodJob dashboard, super_admin only)
 
@@ -155,7 +155,6 @@ To illustrate, `bin/rails console` will run the console in the docker container 
 
 ### Admin & UI
 - [JS Bundling](https://github.com/rails/jsbundling-rails) - JavaScript bundling with esbuild
-- [CSS Bundling](https://github.com/rails/cssbundling-rails) - CSS bundling with Sass
 - [Turbo Rails](https://github.com/hotwired/turbo-rails) - Fast page navigation and form submissions
 - [Stimulus Rails](https://github.com/hotwired/stimulus-rails) - Lightweight JavaScript interactions
 - [Tailwind CSS Rails](https://github.com/rails/tailwindcss-rails) - Utility CSS for the authentication pages
@@ -242,8 +241,7 @@ namespace :api do
   end
 end
 
-# Add to ActiveAdmin (optional)
-# Create app/admin/article.rb
+# Add an explicit admin controller/view and Admin::ArticlePolicy if platform access is needed
 ```
 
 ## Configuration
@@ -616,7 +614,7 @@ See [Docker documentation](docs/docker.md) for more details.
 
 ```
 app/
-├── admin/              # ActiveAdmin configuration
+├── controllers/admin/  # Custom platform dashboard and resource controllers
 ├── controllers/        # Controllers
 │   ├── api/v1/        # API v1 endpoints
 │   └── users/         # Devise user controllers
