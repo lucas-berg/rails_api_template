@@ -35,11 +35,17 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable, :jwt_authenticatable,
-         :recoverable, :trackable, :validatable, jwt_revocation_strategy: JwtDenylist
+         :recoverable, :trackable, :validatable, :confirmable, jwt_revocation_strategy: AuthSession
+
+  include UserAuthentication
+  include TeamMemberships
 
   validates :uid, uniqueness: { scope: :provider }
 
   before_validation :init_uid
+  before_update :sync_confirmed_uid
+
+  PUBLIC_ATTRIBUTES = %w[id email first_name last_name username created_at updated_at provider uid].freeze
 
   RANSACK_ATTRIBUTES = %w[id email first_name last_name username sign_in_count current_sign_in_at
                           last_sign_in_at current_sign_in_ip last_sign_in_ip provider uid
@@ -55,7 +61,7 @@ class User < ApplicationRecord
   end
 
   def serializable_hash(options = nil)
-    super.except('tokens', 'allow_password_change')
+    super(options.to_h.merge(only: PUBLIC_ATTRIBUTES, methods: [], include: []))
   end
 
   def full_name
@@ -69,6 +75,12 @@ class User < ApplicationRecord
   def init_uid
     return unless provider == 'email'
 
-    self.uid = email if uid.blank? || (will_save_change_to_email? && uid == email_in_database)
+    self.uid = email if uid.blank?
+  end
+
+  def sync_confirmed_uid
+    return unless provider == 'email' && will_save_change_to_email? && uid == email_in_database
+
+    self.uid = email
   end
 end

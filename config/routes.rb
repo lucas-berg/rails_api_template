@@ -11,10 +11,24 @@ Rails.application.routes.draw do
   authenticate :user do
     resource :account, only: :show, controller: 'users/accounts'
   end
+  get '/invitations/accept', to: 'invitation_acceptances#show', as: :invitation_acceptance
+  post '/invitations/accept', to: 'invitation_acceptances#create'
 
   namespace :api do
     namespace :v1, defaults: { format: :json } do
       get :status, to: 'health#status'
+      get :ready, to: 'health#ready'
+      resources :auth_sessions, only: %i[index destroy]
+      resources :teams, only: %i[index show create update] do
+        resources :members, only: %i[index update destroy]
+        resources :invitations, only: %i[index create destroy] do
+          post :resend, on: :member
+        end
+        resource :settings, only: %i[show update], controller: 'team_settings'
+        resource :ownership_transfer, only: :create, controller: 'ownership_transfers'
+        resources :audit_events, only: :index
+      end
+      post 'invitations/accept', to: 'invitation_acceptances#create'
       devise_scope :user do
         resource :user, only: %i[update show]
       end
@@ -27,7 +41,7 @@ Rails.application.routes.draw do
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
   namespace :admin do
-    authenticate(:admin_user) do
+    authenticate(:admin_user, ->(admin) { admin.super_admin? }) do
       mount Flipper::UI.app(Flipper) => '/feature-flags'
       mount GoodJob::Engine => '/jobs'
     end

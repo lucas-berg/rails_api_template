@@ -37,5 +37,10 @@ FactoryBot.define do
     password { Faker::Internet.password(min_length: 8) }
     username { Faker::Internet.unique.user_name }
     uid      { Faker::Internet.uuid }
+    confirmed_at { Time.current }
+
+    trait :unconfirmed do
+      confirmed_at { nil }
+    end
   end
 end

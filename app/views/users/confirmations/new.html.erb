@@ -1,0 +1,19 @@
+<% content_for :title, "Confirm your email · Rails API Template" %>
+
+<main class="auth-shell">
+  <section class="card auth-card">
+    <div class="card-body">
+      <h2>Confirm your email</h2>
+      <p class="auth-card__lead">Enter your email to receive a new confirmation link.</p>
+      <%= render "devise/shared/error_messages", resource: resource %>
+      <%= form_with model: resource, as: resource_name, url: confirmation_path(resource_name), class: "auth-form" do |form| %>
+        <div class="form-control">
+          <%= form.label :email, class: "label" do %><span class="label-text">Email address</span><% end %>
+          <%= form.email_field :email, autofocus: true, autocomplete: "email", required: true, class: "input input-md" %>
+        </div>
+        <%= form.submit "Send confirmation link", class: "btn btn-primary auth-submit" %>
+      <% end %>
+      <p class="auth-links auth-links--center"><%= link_to "Back to sign in", new_session_path(resource_name), class: "link link-primary" %></p>
+    </div>
+  </section>
+</main>

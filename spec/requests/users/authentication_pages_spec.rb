@@ -34,12 +34,13 @@ RSpec.describe 'User authentication pages' do
     expect(response.headers['Authorization']).to be_nil
   end
 
-  it 'registers and redirects to the account page' do
+  it 'registers and asks the user to confirm their email before signing in' do
     post user_registration_path,
          params: { user: { email: 'new-user@example.com', password: 'Password123!',
                            password_confirmation: 'Password123!' } }
 
-    expect(response).to redirect_to(account_path)
+    expect(response).to redirect_to(new_user_session_path)
+    expect(User.find_by!(email: 'new-user@example.com')).not_to be_confirmed
   end
 
   context 'with forgery protection enabled' do

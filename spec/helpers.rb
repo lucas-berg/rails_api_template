@@ -11,6 +11,9 @@ module Helpers
   end
 
   def auth_headers(user)
-    Devise::JWT::TestHelpers.auth_headers({}, user)
+    headers = Devise::JWT::TestHelpers.auth_headers({}, user)
+    token = headers.fetch('Authorization').delete_prefix('Bearer ')
+    AuthSession.register!(user, Warden::JWTAuth::TokenDecoder.new.call(token))
+    headers
   end
 end

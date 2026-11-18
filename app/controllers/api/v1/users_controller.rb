@@ -20,7 +20,19 @@ module API
       private
 
       def update_user_params
-        params.expect(user: %i[username first_name last_name email current_password])
+        supplied_user = params.require(:user)
+        preferences = supplied_user[:preferences] if supplied_user.is_a?(ActionController::Parameters)
+        validate_preference_keys!(preferences)
+        params.expect(user: [:username, :first_name, :last_name, :email, :current_password,
+                             { preferences: %i[locale timezone] }])
+      end
+
+      def validate_preference_keys!(preferences)
+        if preferences && (!preferences.is_a?(ActionController::Parameters) || (preferences.keys - %w[locale
+                                                                                                      timezone]).any?)
+          current_user.errors.add(:preferences, 'contains invalid fields')
+          raise ActiveRecord::RecordInvalid, current_user
+        end
       end
     end
   end

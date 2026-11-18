@@ -15,17 +15,18 @@ RSpec.describe 'JSON accounts' do
 
   it 'requests password reset instructions' do
     user = create(:user)
-    post user_password_path, params: { user: { email: user.email } }, as: :json
+    expect {
+      post user_password_path, params: { user: { email: user.email } }, as: :json
+    }.to change(MailDelivery, :count).by(1)
 
     expect(response).to have_http_status(:created)
     expect(json).to be_empty
-    expect(ActionMailer::Base.deliveries.last.to).to contain_exactly(user.email)
   end
 
   it 'returns the same reset response for an unregistered address', openapi: false do
     expect {
       post user_password_path, params: { user: { email: 'unregistered@example.com' } }, as: :json
-    }.not_to change { ActionMailer::Base.deliveries.size }
+    }.not_to change(MailDelivery, :count)
     expect(response).to have_http_status(:created)
     expect(json).to be_empty
   end

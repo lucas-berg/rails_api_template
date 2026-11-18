@@ -28,5 +28,10 @@ FactoryBot.define do
   factory :admin_user do
     email    { Faker::Internet.unique.email }
     password { Faker::Internet.password(min_length: 8) }
+    role { 'super_admin' }
+
+    trait :support do
+      role { 'support' }
+    end
   end
 end

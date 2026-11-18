@@ -3,6 +3,7 @@
 if Rails.env.development?
   AdminUser.find_or_create_by!(email: 'admin@example.com') do |admin|
     admin.password = 'password'
+    admin.role = 'super_admin'
   end
 end
 

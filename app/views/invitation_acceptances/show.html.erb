@@ -1,0 +1,11 @@
+<main class="mx-auto max-w-lg p-8">
+  <h1>Team invitation</h1>
+  <% if user_signed_in? %>
+    <p>You have been invited to join <strong><%= @invitation.team.name %></strong>.</p>
+    <%= button_to "Accept invitation", invitation_acceptance_path, method: :post %>
+  <% else %>
+    <p>Sign in with the verified email address that received this invitation.</p>
+    <%= link_to "Sign in", new_user_session_path %>
+    <%= link_to "Create an account", new_user_registration_path %>
+  <% end %>
+</main>

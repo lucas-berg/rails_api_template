@@ -1,0 +1,8 @@
+en:
+  saas:
+    invitation:
+      accepted: You have joined the team.
+    admin:
+      account_updated: Account status updated.
+      team_updated: Team status updated.
+      mail_retried: Delivery queued for retry.

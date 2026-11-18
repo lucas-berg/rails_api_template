@@ -1,0 +1,5 @@
+<p>You have been invited to join <strong><%= @team_name %></strong>.</p>
+<p><%= link_to 'Accept invitation', @accept_url %></p>
+<p>Sign in using this email address and verify your email before accepting.</p>
+<p>This invitation expires at <%= @expires_at.utc.iso8601 %>.</p>
+<p>If you were not expecting this invitation, you can ignore this email.</p>

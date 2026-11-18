@@ -3,6 +3,7 @@
 require_relative 'boot'
 
 require 'rails/all'
+require 'uri'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -26,19 +27,26 @@ module App
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    ActionMailer::Base.smtp_settings = {
+    config.x.public_url = ENV.fetch('APP_PUBLIC_URL') {
+      protocol = Rails.env.production? ? 'https' : 'http'
+      "#{protocol}://#{ENV.fetch('SERVER_HOST', 'localhost')}:#{ENV.fetch('PORT', 3000)}"
+    }.delete_suffix('/')
+    public_uri = URI.parse(config.x.public_url)
+    config.action_mailer.smtp_settings = {
       address: 'smtp.sendgrid.net',
       authentication: :plain,
-      domain: ENV.fetch('SERVER_HOST', nil),
+      domain: public_uri.host,
       enable_starttls_auto: true,
       password: ENV.fetch('SENDGRID_API_KEY', nil),
       port: 587,
-      user_name: 'apikey'
+      user_name: 'apikey',
+      open_timeout: 10,
+      read_timeout: 30
     }
-    config.action_mailer.default_url_options = { host: ENV.fetch('SERVER_HOST', nil),
-                                                 port: ENV.fetch('PORT', 3000) }
+    config.action_mailer.default_url_options = { host: public_uri.host, port: public_uri.port,
+                                                 protocol: public_uri.scheme }
     config.action_mailer.default_options = {
-      from: 'no-reply@example.com'
+      from: ENV.fetch('DEFAULT_EMAIL_SENDER', 'no-reply@example.com')
     }
 
     config.action_mailer.deliver_later_queue_name = 'mailers'

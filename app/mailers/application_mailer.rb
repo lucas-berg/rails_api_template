@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
 class ApplicationMailer < ActionMailer::Base
-  default from: 'no-reply@example.com'
+  default from: -> { Rails.configuration.action_mailer.default_options.fetch(:from) }
   layout 'mailer'
 end

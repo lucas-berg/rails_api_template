@@ -30,6 +30,7 @@ gem 'oj', '~> 3.17'
 gem 'rack-attack'
 gem 'rack-cors', '~> 3.0'
 gem 'rails_param', '~> 1.3.1'
+gem 'redis', '~> 5.0'
 
 # Tools
 gem 'dotenv-rails', '~> 3.2.0'
