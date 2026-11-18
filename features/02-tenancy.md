@@ -1,6 +1,6 @@
 # 团队与多租户
 
-本轮修订（2026-11-18）：以 [五步计划](../doc/saas-implementation-plan.md) 为准，文件/头像/业务导出已移出范围，后台改为自建 /admin，授权改用 Pundit；旧验收结论需重新验证。
+当前范围（2026-11-18）：文件、头像和业务导出已移除；使用自建 /admin、Pundit 授权及 Ransack 搜索。实现边界见 [五步计划](../doc/saas-implementation-plan.md)，测试与构建结果见 [验收记录](../doc/saas-validation.md)。
 
 - 优先级：P0。
 - 当前状态：Team/Member 与共享库显式租户隔离已实现。
@@ -19,7 +19,7 @@
 | 状态 | 行为 |
 | --- | --- |
 | active | 按角色开放读写 |
-| suspended | 允许有效成员读取，拒绝业务写入；owner/admin 可导出，平台可受控恢复 |
+| suspended | 允许有效成员读取，拒绝业务写入；平台可受控恢复 |
 | deletion_pending | 删除冷静期，立即冻结业务写入；申请者可通过删除请求接口取消 |
 | deleting | 已越过取消点，幂等清理和失败重试 |
 | deleted | 匿名墓碑，成员和业务数据已清理；不得恢复成正常团队 |
@@ -31,12 +31,12 @@
 
 ## 实现与并发边界
 
-[Team](../app/models/team.rb)、[Member](../app/models/member.rb)、[TeamContextController](../app/controllers/api/v1/team_context_controller.rb)、[Authorization](../app/services/authorization.rb) 和 [Teams 服务](../app/services/teams) 共同实现范围控制。团队外键、唯一索引和状态检查在数据库层补充模型校验。
+[Team](../app/models/team.rb)、[Member](../app/models/member.rb)、[TeamContextController](../app/controllers/api/v1/team_context_controller.rb)、[TeamPolicy](../app/policies/team_policy.rb) 和 [Teams 服务](../app/services/teams) 共同实现范围控制。团队外键、唯一索引和状态检查在数据库层补充模型校验。
 
 创建团队、接受邀请、转移 owner 与账号删除共享用户 advisory lock；团队内写入使用团队行锁。删除申请中的用户不能新建团队、接受新成员身份或成为新的 owner，避免绕过最后 owner 保护。
 
 ## 验证与边界
 
-[团队请求测试](../spec/requests/api/v1/teams_spec.rb) 与 [建队并发测试](../spec/services/teams/create_concurrency_spec.rb) 覆盖首位 owner 原子性、跨团队隐藏、暂停写入和并发。成员、附件、通知、导出的隔离测试分别随对应模块提供。
+[团队请求测试](../spec/requests/api/v1/teams_spec.rb) 与 [建队并发测试](../spec/services/teams/create_concurrency_spec.rb) 覆盖首位 owner 原子性、跨团队隐藏、暂停写入和并发。成员、邀请与通知的隔离测试分别随对应模块提供。
 
 本次新增独立团队业务表，不擅自把历史业务数据归到任意团队。将模板接入既有业务时，仍需制定逐表归属、回填核对和回滚方案。数据库行级安全、独立租户库和租户专属缓存平台属于后续扩展。

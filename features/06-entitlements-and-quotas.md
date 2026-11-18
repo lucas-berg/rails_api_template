@@ -1,6 +1,6 @@
 # 功能权益、用量与配额
 
-本轮修订（2026-11-18）：以 [五步计划](../doc/saas-implementation-plan.md) 为准，文件/头像/业务导出已移出范围，后台改为自建 /admin，授权改用 Pundit；旧验收结论需重新验证。
+当前范围（2026-11-18）：文件、头像和业务导出已移除；使用自建 /admin、Pundit 授权及 Ransack 搜索。实现边界见 [五步计划](../doc/saas-implementation-plan.md)，测试与构建结果见 [验收记录](../doc/saas-validation.md)。
 
 - 优先级：P0（存在套餐限制时）
 - 当前基础：待实现；Flipper 不等于套餐权益

@@ -8,7 +8,7 @@ The SaaS foundation uses **Team** as the tenant and **Member** for team roles, w
 
 ## Features
 
-The current revision removes file uploads, avatars and business exports, replaces ActiveAdmin with a custom `/admin`, adopts Pundit authorization, and retains Ransack for admin search. Searches run within Pundit scopes using explicit model field allowlists. Implementation and verification follow the [updated plan](doc/saas-implementation-plan.md); previous verification results are historical.
+The current revision removes file uploads, avatars and business exports, replaces ActiveAdmin with a custom `/admin`, adopts Pundit authorization, and retains Ransack for admin search. Searches run within Pundit scopes using explicit model field allowlists. See the [five-step plan](doc/saas-implementation-plan.md) and [completed validation record](doc/saas-validation.md).
 
 This template comes with:
 
@@ -52,6 +52,7 @@ New SaaS endpoints return `{ data, meta }` and structured errors with `request_i
 
 ### Administration Panel
 - Custom Rails /admin dashboard with explicit controllers and views
+- Ransack search with model field allowlists, Pundit scopes and retained pagination filters
 - User management interface
 - Admin user management
 - Read-only support access; reasoned and audited super_admin operations
@@ -61,6 +62,7 @@ New SaaS endpoints return `{ data, meta }` and structured errors with `request_i
 
 ### Infrastructure & Tools
 - **Authentication**: Devise + Devise-JWT for token-based auth
+- **Authorization**: Pundit policies and scopes for API and administration access
 - **HTML authentication**: Turbo-powered Devise pages with Stimulus interactions
 - **API Documentation**: OpenAPI/Swagger via Rswag
 - **Background Jobs**: GoodJob for async processing

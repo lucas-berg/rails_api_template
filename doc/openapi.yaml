@@ -15,13 +15,6 @@ paths:
       responses:
         '200':
           description: lists only the current user active sessions without token identifiers
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -69,13 +62,6 @@ paths:
                 - meta
         '401':
           description: requires a bearer token
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -117,22 +103,8 @@ paths:
       responses:
         '204':
           description: revokes another API session without signing out this one
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
         '404':
           description: does not revoke another user session
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -175,13 +147,6 @@ paths:
         '200':
           description: allows the requester to cancel with their password and restores
             the previous team status
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -230,13 +195,6 @@ paths:
         '409':
           description: hides other users requests and rejects cancellation after processing
             starts
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -291,13 +249,6 @@ paths:
         '200':
           description: shows the requested deletion schedule without exposing the
             encrypted completion recipient
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -364,13 +315,6 @@ paths:
         '200':
           description: accepts an invitation once and safely replays for an existing
             member
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -427,13 +371,6 @@ paths:
         '409':
           description: does not restore membership by replaying an already accepted
             invitation after removal
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -469,13 +406,6 @@ paths:
       responses:
         '200':
           description: returns defaults without creating a record
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -530,13 +460,6 @@ paths:
       responses:
         '200':
           description: updates optional channels for only the authenticated user
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -566,13 +489,6 @@ paths:
                 - meta
         '400':
           description: rejects recipient injection
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -622,13 +538,6 @@ paths:
       responses:
         '200':
           description: updates optional notification channels through the PUT alias
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -664,13 +573,6 @@ paths:
       responses:
         '200':
           description: checks the database and shared rate limit store
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -683,13 +585,6 @@ paths:
         '503':
           description: reports unavailable dependencies without exposing connection
             details
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -710,13 +605,6 @@ paths:
         '200':
           description: lists personal security notifications separately from team
             activity
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -770,13 +658,6 @@ paths:
                 - meta
         '401':
           description: requires authentication
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -824,13 +705,6 @@ paths:
       responses:
         '200':
           description: marks a personal security notification as read
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -884,13 +758,6 @@ paths:
       responses:
         '200':
           description: returns no need to update
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -902,13 +769,6 @@ paths:
                 - must_update
         '400':
           description: returns a client error
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -933,13 +793,6 @@ paths:
       responses:
         '200':
           description: returns the api status
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -966,13 +819,6 @@ paths:
         '200':
           description: only lists teams for the current active member with capped
             pagination
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1026,13 +872,6 @@ paths:
                 - meta
         '401':
           description: requires authentication with the new error envelope
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1088,13 +927,6 @@ paths:
       responses:
         '201':
           description: creates a team with an owner and audit event atomically
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1136,13 +968,6 @@ paths:
                 - meta
         '400':
           description: hides another team and rejects forged ownership attributes
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1171,13 +996,6 @@ paths:
         '422':
           description: rejects an invalid timezone without partially creating the
             team
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1219,13 +1037,6 @@ paths:
       responses:
         '200':
           description: returns the authorized current team
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1295,13 +1106,6 @@ paths:
       responses:
         '200':
           description: updates permitted team fields using PATCH
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1343,13 +1147,6 @@ paths:
                 - meta
         '409':
           description: rejects team writes by a viewer and suspended teams
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1405,13 +1202,6 @@ paths:
       responses:
         '200':
           description: updates permitted team fields using PUT
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1467,13 +1257,6 @@ paths:
       responses:
         '200':
           description: lets managers read the team audit history
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1537,13 +1320,6 @@ paths:
                 - meta
         '403':
           description: denies audit history to ordinary members
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1569,305 +1345,6 @@ paths:
                 required:
                 - errors
                 - request_id
-  "/api/v1/teams/{team_id}/avatar":
-    delete:
-      summary: destroy
-      tags:
-      - API::V1::Avatar
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '204':
-          description: clears an avatar through the authorized team endpoint
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-    get:
-      summary: show
-      tags:
-      - API::V1::Avatar
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: does not expose an avatar which is no longer ready
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      team_id:
-                        type: integer
-                      uploader_id:
-                        type: integer
-                      filename:
-                        type: string
-                      byte_size:
-                        type: integer
-                      status:
-                        type: string
-                      content_type:
-                        type: string
-                      failure_code:
-                        nullable: true
-                      upload_expires_at:
-                        type: string
-                      verified_at:
-                        type: string
-                      created_at:
-                        type: string
-                    required:
-                    - id
-                    - team_id
-                    - uploader_id
-                    - filename
-                    - byte_size
-                    - status
-                    - content_type
-                    - failure_code
-                    - upload_expires_at
-                    - verified_at
-                    - created_at
-                    nullable: true
-                  meta:
-                    type: object
-                    properties: {}
-                required:
-                - data
-                - meta
-        '404':
-          description: hides a selected avatar after membership is removed
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          nullable: true
-                      required:
-                      - code
-                      - message
-                      - field
-                  request_id:
-                    type: string
-                required:
-                - errors
-                - request_id
-    patch:
-      summary: update
-      tags:
-      - API::V1::Avatar
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                avatar:
-                  type: object
-                  properties:
-                    document_id:
-                      type: integer
-                  required:
-                  - document_id
-              required:
-              - avatar
-      responses:
-        '200':
-          description: requires a verified own image for an avatar and clears its
-            reference on deletion
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      team_id:
-                        type: integer
-                      uploader_id:
-                        type: integer
-                      filename:
-                        type: string
-                      byte_size:
-                        type: integer
-                      status:
-                        type: string
-                      content_type:
-                        type: string
-                      failure_code:
-                        nullable: true
-                      upload_expires_at:
-                        type: string
-                      verified_at:
-                        type: string
-                      created_at:
-                        type: string
-                    required:
-                    - id
-                    - team_id
-                    - uploader_id
-                    - filename
-                    - byte_size
-                    - status
-                    - content_type
-                    - failure_code
-                    - upload_expires_at
-                    - verified_at
-                    - created_at
-                  meta:
-                    type: object
-                    properties: {}
-                required:
-                - data
-                - meta
-    put:
-      summary: update
-      tags:
-      - API::V1::Avatar
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                avatar:
-                  type: object
-                  properties:
-                    document_id:
-                      type: integer
-                  required:
-                  - document_id
-              required:
-              - avatar
-      responses:
-        '200':
-          description: selects a verified avatar through the PUT alias
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      team_id:
-                        type: integer
-                      uploader_id:
-                        type: integer
-                      filename:
-                        type: string
-                      byte_size:
-                        type: integer
-                      status:
-                        type: string
-                      content_type:
-                        type: string
-                      failure_code:
-                        nullable: true
-                      upload_expires_at:
-                        type: string
-                      verified_at:
-                        type: string
-                      created_at:
-                        type: string
-                    required:
-                    - id
-                    - team_id
-                    - uploader_id
-                    - filename
-                    - byte_size
-                    - status
-                    - content_type
-                    - failure_code
-                    - upload_expires_at
-                    - verified_at
-                    - created_at
-                  meta:
-                    type: object
-                    properties: {}
-                required:
-                - data
-                - meta
   "/api/v1/teams/{team_id}/dashboard":
     get:
       summary: show
@@ -1882,13 +1359,6 @@ paths:
       responses:
         '200':
           description: returns tenant-scoped counts and effective personal preferences
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -1932,15 +1402,12 @@ paths:
                         properties:
                           members:
                             type: integer
-                          files:
-                            type: integer
                           unread_notifications:
                             type: integer
                           pending_invitations:
                             type: integer
                         required:
                         - members
-                        - files
                         - unread_notifications
                         - pending_invitations
                       preferences:
@@ -1966,13 +1433,6 @@ paths:
                 - meta
         '404':
           description: rejects another team even with a valid user token
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -2029,12 +1489,6 @@ paths:
             Location:
               schema:
                 type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -2080,758 +1534,6 @@ paths:
                 required:
                 - data
                 - meta
-  "/api/v1/teams/{team_id}/exports":
-    get:
-      summary: index
-      tags:
-      - API::V1::DataExport
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: lists only exports requested by the current user in the selected
-            team
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        team_id:
-                          type: integer
-                        status:
-                          type: string
-                        expires_at:
-                          nullable: true
-                        failure_code:
-                          nullable: true
-                        created_at:
-                          type: string
-                        stage:
-                          type: string
-                      required:
-                      - id
-                      - team_id
-                      - status
-                      - expires_at
-                      - failure_code
-                      - created_at
-                      - stage
-                  meta:
-                    type: object
-                    properties:
-                      page:
-                        type: integer
-                      per_page:
-                        type: integer
-                      total:
-                        type: integer
-                    required:
-                    - page
-                    - per_page
-                    - total
-                required:
-                - data
-                - meta
-    post:
-      summary: create
-      tags:
-      - API::V1::DataExport
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties: {}
-      responses:
-        '202':
-          description: accepts an asynchronous export with a private progress resource
-          headers:
-            Location:
-              schema:
-                type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      team_id:
-                        type: integer
-                      status:
-                        type: string
-                      expires_at:
-                        nullable: true
-                      failure_code:
-                        nullable: true
-                      created_at:
-                        type: string
-                      stage:
-                        type: string
-                    required:
-                    - id
-                    - team_id
-                    - status
-                    - expires_at
-                    - failure_code
-                    - created_at
-                    - stage
-                  meta:
-                    type: object
-                    properties: {}
-                required:
-                - data
-                - meta
-  "/api/v1/teams/{team_id}/exports/{id}":
-    get:
-      summary: show
-      tags:
-      - API::V1::DataExport
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: shows completed progress and expiry without disclosing storage
-            identifiers
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      team_id:
-                        type: integer
-                      status:
-                        type: string
-                      expires_at:
-                        type: string
-                      failure_code:
-                        nullable: true
-                      created_at:
-                        type: string
-                      stage:
-                        type: string
-                    required:
-                    - id
-                    - team_id
-                    - status
-                    - expires_at
-                    - failure_code
-                    - created_at
-                    - stage
-                  meta:
-                    type: object
-                    properties: {}
-                required:
-                - data
-                - meta
-        '404':
-          description: rejects ordinary members and cross-team export IDs
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          nullable: true
-                      required:
-                      - code
-                      - message
-                      - field
-                  request_id:
-                    type: string
-                required:
-                - errors
-                - request_id
-  "/api/v1/teams/{team_id}/exports/{id}/download":
-    get:
-      summary: download
-      tags:
-      - API::V1::DataExport
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: builds a private export and documents the file-content boundary
-          headers:
-            Content-Disposition:
-              schema:
-                type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: string
-                format: binary
-        '404':
-          description: rechecks membership at execution and download time
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          nullable: true
-                      required:
-                      - code
-                      - message
-                      - field
-                  request_id:
-                    type: string
-                required:
-                - errors
-                - request_id
-        '409':
-          description: expires downloads after 24 hours and cleans their private attachment
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          nullable: true
-                      required:
-                      - code
-                      - message
-                      - field
-                  request_id:
-                    type: string
-                required:
-                - errors
-                - request_id
-  "/api/v1/teams/{team_id}/files":
-    get:
-      summary: index
-      tags:
-      - API::V1::File
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: lists only files in the current team
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        team_id:
-                          type: integer
-                        uploader_id:
-                          type: integer
-                        filename:
-                          type: string
-                        byte_size:
-                          type: integer
-                        status:
-                          type: string
-                        content_type:
-                          type: string
-                        failure_code:
-                          nullable: true
-                        upload_expires_at:
-                          type: string
-                        verified_at:
-                          type: string
-                        created_at:
-                          type: string
-                      required:
-                      - id
-                      - team_id
-                      - uploader_id
-                      - filename
-                      - byte_size
-                      - status
-                      - content_type
-                      - failure_code
-                      - upload_expires_at
-                      - verified_at
-                      - created_at
-                  meta:
-                    type: object
-                    properties:
-                      page:
-                        type: integer
-                      per_page:
-                        type: integer
-                      total:
-                        type: integer
-                    required:
-                    - page
-                    - per_page
-                    - total
-                required:
-                - data
-                - meta
-  "/api/v1/teams/{team_id}/files/{id}":
-    delete:
-      summary: destroy
-      tags:
-      - API::V1::File
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '204':
-          description: restricts member deletion to own files and allows managers
-            to remove files
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-        '403':
-          description: allows viewers to download but not upload or delete
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          nullable: true
-                      required:
-                      - code
-                      - message
-                      - field
-                  request_id:
-                    type: string
-                required:
-                - errors
-                - request_id
-    get:
-      summary: show
-      tags:
-      - API::V1::File
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: returns verified file metadata without a public storage URL
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      team_id:
-                        type: integer
-                      uploader_id:
-                        type: integer
-                      filename:
-                        type: string
-                      byte_size:
-                        type: integer
-                      status:
-                        type: string
-                      content_type:
-                        type: string
-                      failure_code:
-                        nullable: true
-                      upload_expires_at:
-                        type: string
-                      verified_at:
-                        type: string
-                      created_at:
-                        type: string
-                    required:
-                    - id
-                    - team_id
-                    - uploader_id
-                    - filename
-                    - byte_size
-                    - status
-                    - content_type
-                    - failure_code
-                    - upload_expires_at
-                    - verified_at
-                    - created_at
-                  meta:
-                    type: object
-                    properties: {}
-                required:
-                - data
-                - meta
-  "/api/v1/teams/{team_id}/files/{id}/download":
-    get:
-      summary: download
-      tags:
-      - API::V1::File
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: privately downloads a verified PDF as an attachment
-          headers:
-            Content-Disposition:
-              schema:
-                type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-            Content-Security-Policy:
-              schema:
-                type: string
-          content:
-            application/pdf:
-              schema:
-                type: string
-                format: binary
-            image/jpeg:
-              schema:
-                type: string
-                format: binary
-            image/png:
-              schema:
-                type: string
-                format: binary
-        '404':
-          description: requires authentication and hides cross-team files even from
-            a member of both teams
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          nullable: true
-                      required:
-                      - code
-                      - message
-                      - field
-                  request_id:
-                    type: string
-                required:
-                - errors
-                - request_id
-        '409':
-          description: rejects oversized uploads and forged content types
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          nullable: true
-                      required:
-                      - code
-                      - message
-                      - field
-                  request_id:
-                    type: string
-                required:
-                - errors
-                - request_id
-  "/api/v1/teams/{team_id}/files/{id}/preview":
-    get:
-      summary: preview
-      tags:
-      - API::V1::File
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: previews a verified image with restrictive browser headers
-          headers:
-            Content-Disposition:
-              schema:
-                type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-            Content-Security-Policy:
-              schema:
-                type: string
-          content:
-            image/png:
-              schema:
-                type: string
-                format: binary
-        '409':
-          description: refuses to preview PDF content inline
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          nullable: true
-                      required:
-                      - code
-                      - message
-                      - field
-                  request_id:
-                    type: string
-                required:
-                - errors
-                - request_id
   "/api/v1/teams/{team_id}/invitations":
     get:
       summary: index
@@ -2848,13 +1550,6 @@ paths:
       responses:
         '200':
           description: creates and lists an invitation without leaking its token
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -2940,13 +1635,6 @@ paths:
         '201':
           description: does not allow duplicate pending invitations, but allows a
             new invitation after expiry
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3007,23 +1695,9 @@ paths:
       responses:
         '204':
           description: revokes an invitation and rejects its existing link
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
         '404':
           description: prevents admin invitations from granting another admin role
             and hides cross-team invitations
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3076,13 +1750,6 @@ paths:
       responses:
         '200':
           description: rotates the token when resending and rejects the previous link
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3138,13 +1805,6 @@ paths:
       responses:
         '200':
           description: lists only active team members without credentials
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3231,13 +1891,6 @@ paths:
       responses:
         '204':
           description: removes member access immediately using an existing JWT
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
     patch:
       summary: update
       tags:
@@ -3273,13 +1926,6 @@ paths:
       responses:
         '200':
           description: allows an owner to change an ordinary member role using PATCH
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3335,13 +1981,6 @@ paths:
                 - meta
         '403':
           description: allows admins to manage ordinary roles but cannot grant admin
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3369,13 +2008,6 @@ paths:
                 - request_id
         '404':
           description: rejects cross-team member IDs
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3403,13 +2035,6 @@ paths:
                 - request_id
         '409':
           description: prevents removing or demoting the last owner
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3470,13 +2095,6 @@ paths:
       responses:
         '200':
           description: allows an owner to change an ordinary member role using PUT
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3547,13 +2165,6 @@ paths:
         '200':
           description: renders existing in-app notifications using current personal
             and team language preferences
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3607,13 +2218,6 @@ paths:
                 - meta
         '404':
           description: revokes notification access when the user leaves the team
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3666,13 +2270,6 @@ paths:
       responses:
         '200':
           description: marks a notification read idempotently
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3714,13 +2311,6 @@ paths:
                 - meta
         '404':
           description: rejects a cross-team notification ID
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3760,13 +2350,6 @@ paths:
       responses:
         '200':
           description: derives invitation progress from team data
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3824,13 +2407,6 @@ paths:
       responses:
         '200':
           description: transfers ownership atomically and demotes the previous owner
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3900,13 +2476,6 @@ paths:
       responses:
         '200':
           description: reads only the allowed team settings
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3961,13 +2530,6 @@ paths:
       responses:
         '200':
           description: updates valid team settings using PATCH
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -3994,13 +2556,6 @@ paths:
                 - meta
         '400':
           description: rejects unknown team setting fields
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4056,13 +2611,6 @@ paths:
       responses:
         '200':
           description: updates valid team settings using PUT
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4087,262 +2635,6 @@ paths:
                 required:
                 - data
                 - meta
-  "/api/v1/teams/{team_id}/uploads":
-    post:
-      summary: create
-      tags:
-      - API::V1::Upload
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-              required:
-              - file
-      responses:
-        '201':
-          description: accepts a multipart upload as quarantined metadata without
-            exposing storage identifiers
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      team_id:
-                        type: integer
-                      uploader_id:
-                        type: integer
-                      filename:
-                        type: string
-                      byte_size:
-                        type: integer
-                      status:
-                        type: string
-                      content_type:
-                        nullable: true
-                      failure_code:
-                        nullable: true
-                      upload_expires_at:
-                        type: string
-                      verified_at:
-                        nullable: true
-                      created_at:
-                        type: string
-                    required:
-                    - id
-                    - team_id
-                    - uploader_id
-                    - filename
-                    - byte_size
-                    - status
-                    - content_type
-                    - failure_code
-                    - upload_expires_at
-                    - verified_at
-                    - created_at
-                  meta:
-                    type: object
-                    properties: {}
-                required:
-                - data
-                - meta
-  "/api/v1/teams/{team_id}/uploads/{id}/complete":
-    post:
-      summary: complete
-      tags:
-      - API::V1::Upload
-      security:
-      - BearerAuth: []
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: team_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties: {}
-      responses:
-        '200':
-          description: does not requeue an upload when completion is repeated
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      team_id:
-                        type: integer
-                      uploader_id:
-                        type: integer
-                      filename:
-                        type: string
-                      byte_size:
-                        type: integer
-                      status:
-                        type: string
-                      content_type:
-                        type: string
-                      failure_code:
-                        nullable: true
-                      upload_expires_at:
-                        type: string
-                      verified_at:
-                        type: string
-                      created_at:
-                        type: string
-                    required:
-                    - id
-                    - team_id
-                    - uploader_id
-                    - filename
-                    - byte_size
-                    - status
-                    - content_type
-                    - failure_code
-                    - upload_expires_at
-                    - verified_at
-                    - created_at
-                  meta:
-                    type: object
-                    properties: {}
-                required:
-                - data
-                - meta
-        '202':
-          description: accepts completion and queues content verification
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      team_id:
-                        type: integer
-                      uploader_id:
-                        type: integer
-                      filename:
-                        type: string
-                      byte_size:
-                        type: integer
-                      status:
-                        type: string
-                      content_type:
-                        nullable: true
-                      failure_code:
-                        nullable: true
-                      upload_expires_at:
-                        type: string
-                      verified_at:
-                        nullable: true
-                      created_at:
-                        type: string
-                    required:
-                    - id
-                    - team_id
-                    - uploader_id
-                    - filename
-                    - byte_size
-                    - status
-                    - content_type
-                    - failure_code
-                    - upload_expires_at
-                    - verified_at
-                    - created_at
-                  meta:
-                    type: object
-                    properties: {}
-                required:
-                - data
-                - meta
-        '409':
-          description: rejects completion by another member or after expiration
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          nullable: true
-                      required:
-                      - code
-                      - message
-                      - field
-                  request_id:
-                    type: string
-                required:
-                - errors
-                - request_id
   "/api/v1/user":
     get:
       summary: show
@@ -4353,13 +2645,6 @@ paths:
       responses:
         '200':
           description: returns the signed-in user
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4407,10 +2692,6 @@ paths:
                 - user
         '401':
           description: requires authentication
-          headers:
-            Cache-Control:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4452,13 +2733,6 @@ paths:
       responses:
         '200':
           description: updates the signed-in profile
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4510,13 +2784,6 @@ paths:
                 - user
         '400':
           description: rejects unknown preference keys and invalid timezone types
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4537,13 +2804,6 @@ paths:
                 - errors
         '422':
           description: returns an error for missing parameters
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4587,13 +2847,6 @@ paths:
       responses:
         '200':
           description: keeps the old email until the new address is confirmed
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4641,13 +2894,6 @@ paths:
                 - user
         '400':
           description: requires the current password for an email change
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4679,12 +2925,6 @@ paths:
             starts
           headers:
             Location:
-              schema:
-                type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
               schema:
                 type: string
           content:
@@ -4734,13 +2974,6 @@ paths:
                 - meta
         '409':
           description: rejects deleting a last owner account
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -4789,12 +3022,6 @@ paths:
             user
           headers:
             Location:
-              schema:
-                type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
               schema:
                 type: string
           content:
@@ -4890,12 +3117,6 @@ paths:
             Location:
               schema:
                 type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
     post:
       summary: create
       tags:
@@ -4923,12 +3144,6 @@ paths:
           description: registers an account
           headers:
             Location:
-              schema:
-                type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
               schema:
                 type: string
           content:
@@ -4999,12 +3214,6 @@ paths:
             Location:
               schema:
                 type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
   "/users/confirmation":
     get:
       summary: show
@@ -5019,13 +3228,6 @@ paths:
       responses:
         '200':
           description: rejects sign-in until the address is confirmed
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -5085,12 +3287,6 @@ paths:
             Location:
               schema:
                 type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -5129,12 +3325,6 @@ paths:
             Location:
               schema:
                 type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
     post:
       summary: create
       tags:
@@ -5157,13 +3347,6 @@ paths:
       responses:
         '201':
           description: requests password reset instructions
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -5201,12 +3384,6 @@ paths:
             Location:
               schema:
                 type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
   "/users/sign_in":
     post:
       summary: create
@@ -5238,12 +3415,6 @@ paths:
               schema:
                 type: string
             Location:
-              schema:
-                type: string
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
               schema:
                 type: string
           content:
@@ -5293,10 +3464,6 @@ paths:
                 - user
         '401':
           description: rejects incorrect credentials
-          headers:
-            Cache-Control:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -5316,13 +3483,6 @@ paths:
       responses:
         '204':
           description: signs out the current API session
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
 components:
   securitySchemes:
     BearerAuth:

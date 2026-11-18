@@ -17,7 +17,7 @@ To learn more about best practices and the benefits of using feature flags, plea
 We have taken care of all aspects of the Flipper configuration, and the Feature Flags system is ready to use. However, we understand that some users might have different needs. Flipper configuration can be find in the following files:
 
 - `config/routes.rb` => Mounts the Flipper UI and restricts access to admin_user.
-- `config/initializers/active_admin.rb` => Adds a link in `active_admin` to the Flipper UI.
+- `app/views/layouts/admin.html.erb` => Provides the authorized link to the Flipper UI.
 - `config/initializers/flipper.rb` => Enables the inclusion of a description for every feature flag.
 - `config/feature-flags.yml` => List of all registered feature flags in the system.
 - `spec/rails_helper.rb` => Configures the Memory adapter for use in the testing environment.
@@ -30,7 +30,7 @@ We have taken care of all aspects of the Flipper configuration, and the Feature 
 
 ## Monitoring and Managing Feature Flags
 
-To monitor and manage feature flags, we recommend using the Flipper UI, which can be accessed through `active_admin` or at this path: `/admin/feature-flags/`
+To monitor and manage feature flags, we recommend using the Flipper UI, which can be accessed through the custom `/admin` dashboard or at this path: `/admin/feature-flags/`
 
 ## Use Feature Flags in Your Application
 

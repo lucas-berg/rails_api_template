@@ -1,13 +1,13 @@
 # SaaS 功能范围
 
-本轮修订按用户要求先更新文档，再执行代码。详细顺序见 [五步实施计划](../doc/saas-implementation-plan.md)，验证状态见 [验收记录](../doc/saas-validation.md)。
+当前功能范围及实现顺序见 [五步实施计划](../doc/saas-implementation-plan.md)，测试与构建结果见 [验收记录](../doc/saas-validation.md)。
 
 ## 保留与调整
 
 - 账号认证：Devise/JWT、固定90天、邮箱验证、会话撤销和设备信息。
 - 团队：Team/Member、owner/admin/member/viewer、邀请、所有权转移、设置。
 - 权限：Pundit标准Policy/Scope，移除旧授权分派器；平台使用Admin命名空间策略。
-- 后台：自建 /admin dashboard、AdminUser登录、support只读、super_admin受控写入和审计。
+- 后台：自建 /admin dashboard、AdminUser登录、Ransack白名单搜索、support只读、super_admin受控写入和审计。
 - 内部能力：事务邮件、通知及偏好、团队摘要与首次使用API。
 - 数据退出：账号与团队删除、冷静期、重试、匿名化与独立删除台账。
 
@@ -24,4 +24,4 @@ Document、上传、文件下载/预览、头像及业务导出整体移除，�
 - [删除](12-data-lifecycle.md)、[运行保障](14-security-and-reliability.md)
 - [运行手册](../doc/saas-operations.md)、[删除恢复手册](../doc/saas-data-lifecycle.md)、[OpenAPI](../doc/openapi.yaml)
 
-本轮完成后用实际回归结果更新验收记录，不沿用修订前的测试数量或后台验证结论。
+当前版本已完成368项测试及后台浏览器、代码检查和生产镜像验证；生产部署边界以运行手册和验收记录为准。

@@ -1,6 +1,6 @@
 # SaaS 运行与恢复说明
 
-本轮目标：保留账号、团队、邀请、通知、审计及删除；使用 Pundit 授权和自建 Rails /admin。文件、头像和业务导出不再提供。
+当前功能包括账号、团队、邀请、通知、审计及删除；使用 Pundit 授权和自建 Rails /admin，后台搜索使用 Ransack。文件、头像和业务导出不再提供。
 
 ## 配置与启动
 
@@ -17,6 +17,8 @@ Devise/JWT 验证身份，Pundit 判断可见资源和允许动作。User 与 Ad
 平台入口为 /admin，登录 /admin/login，退出 /admin/logout。support 只读；super_admin 可维护平台管理员、封禁/恢复账号、暂停/恢复团队、重试失败投递和删除任务，必须提供原因并留下审计。GoodJob 和 Flipper 也只允许 super_admin。
 
 后台按明确字段展示，拒绝自动 CSV/JSON 导出；不展示密码、JWT摘要、邮件密文和任务租约。无硬删除或批量写操作。
+
+后台搜索使用 Ransack 的 `q[...]` 参数和模型字段白名单，先应用 Pundit 范围，再筛选和分页。审计动作通过 `q[action_eq]` 筛选；禁止敏感字段和任意关联搜索。
 
 ## 就绪与限流
 
