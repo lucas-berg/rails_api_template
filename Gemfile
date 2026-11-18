@@ -40,7 +40,6 @@ gem 'ransack', '~> 6.1'
 gem 'ruby_llm', '~> 2.2'
 
 # Monitoring
-gem 'newrelic_rpm', '~> 10.9'
 gem 'sentry-ruby', '~> 7.2'
 
 # Doc

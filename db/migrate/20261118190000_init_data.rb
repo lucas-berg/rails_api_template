@@ -1,0 +1,408 @@
+# frozen_string_literal: true
+
+# Baseline through 20261118190000. Existing databases must have applied all
+# historical migrations through that version before switching to this file.
+class InitData < ActiveRecord::Migration[8.1]
+  def change
+    create_table 'active_storage_attachments' do |t|
+      t.string 'name', null: false
+      t.string 'record_type', null: false
+      t.bigint 'record_id', null: false
+      t.bigint 'blob_id', null: false
+      t.datetime 'created_at', precision: nil, null: false
+      t.index ['blob_id'], name: 'index_active_storage_attachments_on_blob_id'
+      t.index %w[record_type record_id name blob_id], name: 'index_active_storage_attachments_uniqueness', unique: true
+    end
+
+    create_table 'active_storage_blobs' do |t|
+      t.string 'key', null: false
+      t.string 'filename', null: false
+      t.string 'content_type'
+      t.text 'metadata'
+      t.bigint 'byte_size', null: false
+      t.string 'checksum'
+      t.datetime 'created_at', precision: nil, null: false
+      t.string 'service_name', null: false
+      t.index ['key'], name: 'index_active_storage_blobs_on_key', unique: true
+    end
+
+    create_table 'active_storage_variant_records' do |t|
+      t.bigint 'blob_id', null: false
+      t.string 'variation_digest', null: false
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index %w[blob_id variation_digest], name: 'index_active_storage_variant_records_uniqueness', unique: true
+    end
+
+    create_table 'admin_users', id: :serial do |t|
+      t.string 'email', default: '', null: false
+      t.string 'encrypted_password', default: '', null: false
+      t.string 'reset_password_token'
+      t.datetime 'reset_password_sent_at', precision: nil
+      t.datetime 'remember_created_at', precision: nil
+      t.integer 'sign_in_count', default: 0, null: false
+      t.datetime 'current_sign_in_at', precision: nil
+      t.datetime 'last_sign_in_at', precision: nil
+      t.inet 'current_sign_in_ip'
+      t.inet 'last_sign_in_ip'
+      t.datetime 'created_at', precision: nil, null: false
+      t.datetime 'updated_at', precision: nil, null: false
+      t.string 'role', default: 'support', null: false
+      t.index ['email'], name: 'index_admin_users_on_email', unique: true
+      t.index ['reset_password_token'], name: 'index_admin_users_on_reset_password_token', unique: true
+      t.check_constraint "role IN ('super_admin', 'support')", name: 'admin_users_role_check'
+    end
+
+    create_table 'audit_events' do |t|
+      t.bigint 'team_id'
+      t.string 'actor_type', null: false
+      t.bigint 'actor_id'
+      t.string 'action', null: false
+      t.string 'target_type', null: false
+      t.bigint 'target_id'
+      t.string 'request_id'
+      t.string 'reason'
+      t.jsonb 'metadata', default: {}, null: false
+      t.datetime 'occurred_at', null: false
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index %w[actor_type actor_id], name: 'index_audit_events_on_actor_type_and_actor_id'
+      t.index %w[target_type target_id], name: 'index_audit_events_on_target_type_and_target_id'
+      t.index %w[team_id occurred_at id], name: 'index_audit_events_on_team_id_and_occurred_at_and_id'
+      t.index ['team_id'], name: 'index_audit_events_on_team_id'
+    end
+
+    create_table 'auth_sessions' do |t|
+      t.integer 'user_id', null: false
+      t.string 'jti_digest', null: false
+      t.integer 'credentials_version', null: false
+      t.datetime 'expires_at', null: false
+      t.datetime 'revoked_at'
+      t.datetime 'last_used_at'
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.string 'user_agent', limit: 256
+      t.inet 'ip_address'
+      t.index ['expires_at'], name: 'index_auth_sessions_on_expires_at'
+      t.index ['jti_digest'], name: 'index_auth_sessions_on_jti_digest', unique: true
+      t.index ['user_id'], name: 'index_auth_sessions_on_user_id'
+      t.check_constraint 'credentials_version >= 0', name: 'auth_sessions_version_nonnegative'
+    end
+
+    create_table 'flipper_features' do |t|
+      t.string 'key', null: false
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index ['key'], name: 'index_flipper_features_on_key', unique: true
+    end
+
+    create_table 'flipper_gates' do |t|
+      t.string 'feature_key', null: false
+      t.string 'key', null: false
+      t.text 'value'
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index %w[feature_key key value], name: 'index_flipper_gates_on_feature_key_and_key_and_value', unique: true
+    end
+
+    create_table 'good_job_batches', id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.text 'description'
+      t.jsonb 'serialized_properties'
+      t.text 'on_finish'
+      t.text 'on_success'
+      t.text 'on_discard'
+      t.text 'callback_queue_name'
+      t.integer 'callback_priority'
+      t.datetime 'enqueued_at'
+      t.datetime 'discarded_at'
+      t.datetime 'finished_at'
+      t.datetime 'jobs_finished_at'
+      t.index %w[created_at id], name: 'index_good_job_batches_on_created_at_and_id', order: :desc
+      t.index ['finished_at'], name: 'index_good_job_batches_on_finished_at', where: '(finished_at IS NOT NULL)'
+    end
+
+    create_table 'good_job_concurrency_claims', id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.uuid 'job_id', null: false
+      t.uuid 'locked_by_id'
+      t.integer 'state', limit: 2, null: false
+      t.text 'key', null: false
+      t.index ['job_id'], name: 'index_good_job_concurrency_claims_on_job_id'
+      t.index %w[key job_id], name: 'index_good_job_concurrency_claims_on_key_and_job_id', unique: true
+      t.index %w[key state created_at], name: 'index_good_job_concurrency_claims_for_promotion'
+      t.index ['locked_by_id'], name: 'index_good_job_concurrency_claims_on_locked_by_id', where: '(locked_by_id IS NOT NULL)'
+    end
+
+    create_table 'good_job_executions', id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.uuid 'active_job_id', null: false
+      t.text 'job_class'
+      t.text 'queue_name'
+      t.jsonb 'serialized_params'
+      t.datetime 'scheduled_at'
+      t.datetime 'finished_at'
+      t.text 'error'
+      t.integer 'error_event', limit: 2
+      t.text 'error_backtrace', array: true
+      t.uuid 'process_id'
+      t.interval 'duration'
+      t.index %w[active_job_id created_at], name: 'index_good_job_executions_on_active_job_id_and_created_at'
+      t.index ['created_at'], name: 'index_good_job_executions_on_created_at'
+      t.index %w[process_id created_at], name: 'index_good_job_executions_on_process_id_and_created_at'
+      t.index ['scheduled_at'], name: 'index_good_job_executions_on_scheduled_at'
+    end
+
+    create_table 'good_job_processes', id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.jsonb 'state'
+      t.integer 'lock_type', limit: 2
+    end
+
+    create_table 'good_job_settings', id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.text 'key'
+      t.jsonb 'value'
+      t.index ['key'], name: 'index_good_job_settings_on_key', unique: true
+    end
+
+    create_table 'good_jobs', id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
+      t.text 'queue_name'
+      t.integer 'priority'
+      t.jsonb 'serialized_params'
+      t.datetime 'scheduled_at'
+      t.datetime 'performed_at'
+      t.datetime 'finished_at'
+      t.text 'error'
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.uuid 'active_job_id'
+      t.text 'concurrency_key'
+      t.text 'cron_key'
+      t.uuid 'retried_good_job_id'
+      t.datetime 'cron_at'
+      t.uuid 'batch_id'
+      t.uuid 'batch_callback_id'
+      t.boolean 'is_discrete'
+      t.integer 'executions_count'
+      t.text 'job_class'
+      t.integer 'error_event', limit: 2
+      t.text 'labels', array: true
+      t.uuid 'locked_by_id'
+      t.datetime 'locked_at'
+      t.integer 'lock_type', limit: 2
+      t.index %w[active_job_id created_at], name: 'index_good_jobs_on_active_job_id_and_created_at'
+      t.index ['batch_callback_id'], name: 'index_good_jobs_on_batch_callback_id', where: '(batch_callback_id IS NOT NULL)'
+      t.index ['batch_callback_id'], name: 'index_good_jobs_on_batch_callback_id_unfinished', where: '((batch_callback_id IS NOT NULL) AND (finished_at IS NULL))'
+      t.index ['batch_id'], name: 'index_good_jobs_on_batch_id', where: '(batch_id IS NOT NULL)'
+      t.index ['batch_id'], name: 'index_good_jobs_on_batch_id_unfinished', where: '((batch_id IS NOT NULL) AND (finished_at IS NULL))'
+      t.index %w[concurrency_key created_at], name: 'index_good_jobs_on_concurrency_key_and_created_at'
+      t.index ['concurrency_key'], name: 'index_good_jobs_on_concurrency_key_when_unfinished', where: '(finished_at IS NULL)'
+      t.index ['created_at'], name: 'index_good_jobs_on_created_at'
+      t.index %w[cron_key created_at], name: 'index_good_jobs_on_cron_key_and_created_at_cond', where: '(cron_key IS NOT NULL)'
+      t.index %w[cron_key cron_at], name: 'index_good_jobs_on_cron_key_and_cron_at_cond', unique: true, order: { cron_at: 'DESC NULLS LAST' }, where: '(cron_key IS NOT NULL)'
+      t.index ['finished_at'], name: 'index_good_jobs_jobs_on_finished_at_only', where: '(finished_at IS NOT NULL)'
+      t.index ['finished_at'], name: 'index_good_jobs_on_discarded', order: :desc, where: '((finished_at IS NOT NULL) AND (error IS NOT NULL))'
+      t.index ['id'], name: 'index_good_jobs_on_unfinished_or_errored', where: '((finished_at IS NULL) OR (error IS NOT NULL))'
+      t.index %w[job_class finished_at], name: 'index_good_jobs_on_discarded_job_class', where: '((finished_at IS NOT NULL) AND (error IS NOT NULL))'
+      t.index ['job_class'], name: 'index_good_jobs_on_job_class'
+      t.index ['labels'], name: 'index_good_jobs_on_labels', where: '(labels IS NOT NULL)', using: :gin
+      t.index ['locked_by_id'], name: 'index_good_jobs_on_locked_by_id', where: '(locked_by_id IS NOT NULL)'
+      t.index %w[priority created_at], name: 'index_good_job_jobs_for_candidate_lookup', where: '(finished_at IS NULL)'
+      t.index %w[priority scheduled_at id], name: 'index_good_jobs_for_candidate_dequeue_unlocked', where: '((finished_at IS NULL) AND (locked_by_id IS NULL))'
+      t.index %w[priority scheduled_at id], name: 'index_good_jobs_on_priority_scheduled_at_unfinished', where: '(finished_at IS NULL)'
+      t.index %w[queue_name priority created_at], name: 'index_good_jobs_dequeue_by_queue', where: '((finished_at IS NULL) AND (locked_by_id IS NULL))'
+      t.index %w[queue_name priority scheduled_at], name: 'index_good_jobs_dequeue_by_queue_scheduled_at', where: '((finished_at IS NULL) AND (locked_by_id IS NULL))'
+      t.index %w[queue_name scheduled_at id], name: 'index_good_jobs_on_queue_name_priority_scheduled_at_unfinished', where: '(finished_at IS NULL)'
+      t.index ['queue_name'], name: 'index_good_jobs_on_queue_name'
+      t.index %w[scheduled_at queue_name], name: 'index_good_jobs_on_scheduled_at_and_queue_name'
+      t.index ['scheduled_at'], name: 'index_good_jobs_on_scheduled_at', where: '(finished_at IS NULL)'
+    end
+
+    create_table 'invitations' do |t|
+      t.bigint 'team_id', null: false
+      t.integer 'invited_by_id', null: false
+      t.string 'normalized_email', null: false
+      t.string 'role', default: 'member', null: false
+      t.string 'token_digest', null: false
+      t.datetime 'expires_at', null: false
+      t.datetime 'accepted_at'
+      t.datetime 'revoked_at'
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index ['invited_by_id'], name: 'index_invitations_on_invited_by_id'
+      t.index %w[team_id normalized_email], name: 'index_invitations_on_pending_email', unique: true, where: '((accepted_at IS NULL) AND (revoked_at IS NULL))'
+      t.index ['team_id'], name: 'index_invitations_on_team_id'
+      t.index ['token_digest'], name: 'index_invitations_on_token_digest', unique: true
+      t.check_constraint "role IN ('admin', 'member', 'viewer')", name: 'invitations_role_allowed'
+    end
+
+    create_table 'jwt_denylists' do |t|
+      t.string 'jti', null: false
+      t.datetime 'exp', null: false
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index ['exp'], name: 'index_jwt_denylists_on_exp'
+      t.index ['jti'], name: 'index_jwt_denylists_on_jti', unique: true
+    end
+
+    create_table 'mail_deliveries' do |t|
+      t.integer 'user_id'
+      t.bigint 'team_id'
+      t.string 'kind', null: false
+      t.string 'event_key', null: false
+      t.text 'encrypted_payload'
+      t.string 'status', default: 'pending', null: false
+      t.integer 'attempts', default: 0, null: false
+      t.datetime 'next_attempt_at', null: false
+      t.datetime 'locked_at'
+      t.string 'lease_token'
+      t.datetime 'sent_at'
+      t.string 'last_error'
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index ['event_key'], name: 'index_mail_deliveries_on_event_key', unique: true
+      t.index %w[status locked_at], name: 'index_mail_deliveries_on_status_and_locked_at'
+      t.index %w[status next_attempt_at], name: 'index_mail_deliveries_on_status_and_next_attempt_at'
+      t.index ['team_id'], name: 'index_mail_deliveries_on_team_id'
+      t.index ['user_id'], name: 'index_mail_deliveries_on_user_id'
+      t.check_constraint 'attempts >= 0', name: 'mail_deliveries_attempts_valid'
+      t.check_constraint "status IN ('pending', 'sending', 'sent', 'failed', 'skipped')", name: 'mail_deliveries_status_valid'
+    end
+
+    create_table 'members' do |t|
+      t.bigint 'team_id', null: false
+      t.integer 'user_id', null: false
+      t.string 'role', default: 'member', null: false
+      t.string 'status', default: 'active', null: false
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index %w[team_id user_id], name: 'index_members_on_team_id_and_user_id', unique: true
+      t.index ['team_id'], name: 'index_members_on_team_id'
+      t.index ['user_id'], name: 'index_members_on_user_id'
+      t.check_constraint "role IN ('owner', 'admin', 'member', 'viewer')", name: 'members_role_allowed'
+      t.check_constraint "status IN ('active', 'removed')", name: 'members_status_allowed'
+    end
+
+    create_table 'notification_deliveries' do |t|
+      t.bigint 'notification_id', null: false
+      t.string 'channel', null: false
+      t.string 'status', default: 'pending', null: false
+      t.integer 'attempts', default: 0, null: false
+      t.datetime 'next_attempt_at', null: false
+      t.datetime 'locked_at'
+      t.string 'lease_token'
+      t.datetime 'sent_at'
+      t.string 'last_error'
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index %w[channel status next_attempt_at], name: 'index_notification_deliveries_due'
+      t.index %w[notification_id channel], name: 'index_notification_deliveries_on_notification_id_and_channel', unique: true
+      t.index ['notification_id'], name: 'index_notification_deliveries_on_notification_id'
+      t.check_constraint 'attempts >= 0', name: 'notification_attempts_nonnegative'
+      t.check_constraint "channel IN ('in_app', 'email')", name: 'notification_channels_allowed'
+      t.check_constraint "status IN ('pending', 'sending', 'sent', 'failed', 'skipped')", name: 'notification_delivery_status_allowed'
+    end
+
+    create_table 'notification_preferences' do |t|
+      t.integer 'user_id', null: false
+      t.boolean 'activity_in_app', default: true, null: false
+      t.boolean 'activity_email', default: false, null: false
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index ['user_id'], name: 'index_notification_preferences_on_user_id', unique: true
+    end
+
+    create_table 'notifications' do |t|
+      t.integer 'user_id', null: false
+      t.bigint 'team_id'
+      t.string 'event_key', null: false
+      t.string 'kind', null: false
+      t.string 'category', null: false
+      t.datetime 'visible_at'
+      t.datetime 'read_at'
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index ['team_id'], name: 'index_notifications_on_team_id'
+      t.index %w[user_id event_key], name: 'index_notifications_on_user_id_and_event_key', unique: true
+      t.index %w[user_id team_id created_at], name: 'index_notifications_on_user_id_and_team_id_and_created_at'
+      t.index ['user_id'], name: 'index_notifications_on_user_id'
+      t.check_constraint "category::text = 'security'::text AND team_id IS NULL OR category::text = 'activity'::text AND team_id IS NOT NULL", name: 'notifications_category_team'
+    end
+
+    create_table 'settings' do |t|
+      t.string 'key', null: false
+      t.string 'value'
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.index ['key'], name: 'index_settings_on_key', unique: true
+    end
+
+    create_table 'teams' do |t|
+      t.string 'name', null: false
+      t.string 'slug', null: false
+      t.string 'status', default: 'active', null: false
+      t.string 'timezone', default: 'UTC', null: false
+      t.string 'locale', default: 'en', null: false
+      t.datetime 'created_at', null: false
+      t.datetime 'updated_at', null: false
+      t.datetime 'deleted_at'
+      t.index ['slug'], name: 'index_teams_on_slug', unique: true
+      t.check_constraint "status IN ('active', 'suspended', 'deleted')", name: 'teams_status_allowed'
+    end
+
+    create_table 'users', id: :serial do |t|
+      t.string 'email'
+      t.string 'encrypted_password', default: '', null: false
+      t.string 'reset_password_token'
+      t.datetime 'reset_password_sent_at', precision: nil
+      t.boolean 'allow_password_change', default: false, null: false
+      t.integer 'sign_in_count', default: 0, null: false
+      t.datetime 'current_sign_in_at', precision: nil
+      t.datetime 'last_sign_in_at', precision: nil
+      t.inet 'current_sign_in_ip'
+      t.inet 'last_sign_in_ip'
+      t.string 'first_name', default: ''
+      t.string 'last_name', default: ''
+      t.string 'username', default: ''
+      t.datetime 'created_at', precision: nil, null: false
+      t.datetime 'updated_at', precision: nil, null: false
+      t.string 'provider', default: 'email', null: false
+      t.string 'uid', default: '', null: false
+      t.json 'tokens'
+      t.string 'confirmation_token'
+      t.datetime 'confirmed_at'
+      t.datetime 'confirmation_sent_at'
+      t.string 'unconfirmed_email'
+      t.string 'status', default: 'active', null: false
+      t.integer 'credentials_version', default: 0, null: false
+      t.jsonb 'preferences', default: {}, null: false
+      t.datetime 'deleted_at'
+      t.index ['confirmation_token'], name: 'index_users_on_confirmation_token', unique: true
+      t.index ['email'], name: 'index_users_on_email', unique: true
+      t.index ['reset_password_token'], name: 'index_users_on_reset_password_token', unique: true
+      t.index %w[uid provider], name: 'index_users_on_uid_and_provider', unique: true
+      t.check_constraint 'credentials_version >= 0', name: 'users_credentials_version_nonnegative'
+      t.check_constraint "status IN ('active', 'suspended')", name: 'users_status_allowed'
+    end
+
+    add_foreign_key 'active_storage_variant_records', 'active_storage_blobs', column: 'blob_id'
+    add_foreign_key 'audit_events', 'teams'
+    add_foreign_key 'auth_sessions', 'users'
+    add_foreign_key 'invitations', 'teams'
+    add_foreign_key 'invitations', 'users', column: 'invited_by_id'
+    add_foreign_key 'mail_deliveries', 'teams', on_delete: :nullify
+    add_foreign_key 'mail_deliveries', 'users', on_delete: :nullify
+    add_foreign_key 'members', 'teams'
+    add_foreign_key 'members', 'users'
+    add_foreign_key 'notification_deliveries', 'notifications'
+    add_foreign_key 'notification_preferences', 'users'
+    add_foreign_key 'notifications', 'teams'
+    add_foreign_key 'notifications', 'users'
+  end
+end

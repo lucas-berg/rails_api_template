@@ -23,7 +23,7 @@ AllCops:
     - config/initializers/strong_migrations.rb
     - db/schema.rb
     - node_modules/**/*
-    - db/migrate/20251013122411_init_data.rb
+    - db/migrate/20261118190000_init_data.rb
 
 Layout/ClassStructure:
   Enabled: true

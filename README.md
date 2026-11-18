@@ -13,6 +13,9 @@ The current revision gives new email accounts a random UUID that stays stable ac
 This template comes with:
 
 ### Database Schema
+
+The 36 historical migrations are consolidated into [`db/migrate/20261118190000_init_data.rb`](db/migrate/20261118190000_init_data.rb), which creates the final schema directly. Existing databases must finish all migrations through `20261118190000` using the previous revision before switching; databases already at that version skip the baseline. Rolling back the baseline removes the entire template schema, so use rollback only on disposable databases created from this baseline.
+
 - **Users and Auth Sessions** - Verified email, reconfirmation, profiles, revocable JWT sessions with a fixed 90-day lifetime; random, stable UIDs for new email accounts
 - **Teams, Members and Invitations** - Explicit team scope, owner/admin/member/viewer roles, seven-day invitations and protected ownership transfers
 - **Admin Users and Audit Events** - Separate super_admin/support access and transactional audit records
@@ -67,7 +70,6 @@ New SaaS endpoints return `{ data, meta }` and structured errors with `request_i
 - **Feature Flags**: Flipper with ActiveRecord adapter
 - **Pagination**: Pagy (high-performance pagination)
 - **Error Tracking**: Sentry Ruby SDK for application instrumentation
-- **Performance Monitoring**: New Relic APM
 - **Code Quality**: RuboCop, Reek, Rails Best Practices, Brakeman
 - **Testing**: RSpec with comprehensive coverage
 - **Docker**: Full Docker and docker-compose support
@@ -172,7 +174,6 @@ To illustrate, `bin/rails console` will run the console in the docker container 
 - [RubyLLM](https://rubyllm.com/) - Unified access to LLM providers
 
 ### Monitoring & Error Tracking
-- [New Relic](https://github.com/newrelic/newrelic-ruby-agent) - Application performance monitoring
 - [Sentry](https://github.com/getsentry/sentry-ruby) - Error tracking and monitoring
 - [PgHero](https://github.com/ankane/pghero) - Database performance monitoring
 - [Lograge](https://github.com/roidrage/lograge) - Simplified Rails logging
@@ -261,9 +262,6 @@ DEFAULT_EMAIL_SENDER=noreply@yourapp.com
 JWT_SECRET_KEY=your_jwt_secret_key
 
 # Monitoring (Optional)
-NEW_RELIC_LICENSE_KEY=your_new_relic_key
-NEW_RELIC_APP_NAME=YourAppName
-
 SENTRY_DSN=your_sentry_dsn
 
 # LLM provider (optional)
@@ -404,20 +402,6 @@ bundle exec rspec
 ```
 
 ## Monitoring & Performance
-
-### New Relic APM
-
-Monitor application performance and errors:
-
-1. Sign up at [New Relic](https://newrelic.com)
-2. Set environment variables:
-   ```bash
-   NEW_RELIC_LICENSE_KEY=your_license_key
-   NEW_RELIC_APP_NAME=YourAppName
-   ```
-3. Deploy and view metrics in New Relic dashboard
-
-Configuration: `config/newrelic.yml`
 
 ### Sentry Error Tracking
 

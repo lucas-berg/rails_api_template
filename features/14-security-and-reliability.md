@@ -19,7 +19,7 @@
 - 每类任务有租约/执行锁、有限重试和终态失败，不把 GoodJob 重试等同于恰好一次。重试前根据数据库当前状态重新判断权限和资格。
 - 请求和任务日志关联 request_id、job_id、user_id、team_id；异步序列化来源 request_id。每个 Job 从受信记录重建上下文，结束时清理；全局扫描不残留上个团队上下文。
 - 自建 Rails /admin 展示失败邮件和通知投递；super_admin 提供原因后使用受控重试。任务/开关管理入口不能由普通业务用户或 support 写入。
-- Sentry、New Relic、Lograge 等已有依赖不等于已完成生产接入、告警和响应流程。
+- Sentry、Lograge 等已有依赖不等于已完成生产接入、告警和响应流程。
 
 ## 恢复与上线
 
