@@ -40,6 +40,7 @@ class User < ApplicationRecord
   include UserAuthentication
   include TeamMemberships
 
+  belongs_to :avatar_document, class_name: 'Document', optional: true
   has_many :notifications, dependent: :restrict_with_error
   has_one :notification_preference, dependent: :restrict_with_error
 

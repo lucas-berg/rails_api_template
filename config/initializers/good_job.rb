@@ -9,6 +9,7 @@ Rails.application.configure do
   # config.good_job.cron_graceful_restart_period = 5.minutes
   config.good_job.cron = {
     mail_delivery_sweep: { cron: '* * * * *', class: 'SweepMailDeliveriesJob' },
-    notification_delivery_sweep: { cron: '* * * * *', class: 'SweepNotificationDeliveriesJob' }
+    notification_delivery_sweep: { cron: '* * * * *', class: 'SweepNotificationDeliveriesJob' },
+    documents_cleanup: { cron: '*/10 * * * *', class: 'CleanupDocumentsJob' }
   }
 end

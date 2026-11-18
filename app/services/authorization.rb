@@ -18,6 +18,7 @@ module Authorization
     when Member then MemberPolicy.new(actor, resource, team || resource.team)
     when Invitation then InvitationPolicy.new(actor, resource, team || resource.team)
     when Notification then NotificationPolicy.new(actor, resource)
+    when Document then DocumentPolicy.new(actor, resource, team || resource.team)
     end
   end
 

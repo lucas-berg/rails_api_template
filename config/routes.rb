@@ -30,6 +30,16 @@ Rails.application.routes.draw do
         resources :notifications, only: :index do
           post :read, on: :member
         end
+        resources :uploads, only: :create do
+          post :complete, on: :member
+        end
+        resources :files, only: %i[index show destroy] do
+          get :download, on: :member
+          get :preview, on: :member
+        end
+        resource :avatar, only: %i[update destroy]
+        resource :dashboard, only: :show, controller: 'team_dashboards'
+        resource :onboarding, only: :show, controller: 'team_onboarding'
       end
       post 'invitations/accept', to: 'invitation_acceptances#create'
       resources :security_notifications, only: :index do

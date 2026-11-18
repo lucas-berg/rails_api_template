@@ -23,13 +23,24 @@ module Platform
 
     def retry_record
       case @record
-      when NotificationDelivery then @record.retry_delivery!
+      when NotificationDelivery
+        require_status!('failed')
+        @record.retry_delivery!
+      when Document
+        require_status!('purge_failed')
+        @record.retry_purge!
       else raise ArgumentError, 'Unsupported retry resource'
       end
     end
 
+    def require_status!(status)
+      return if @record.status == status
+
+      raise Collaboration::Conflict.new('not_retryable', 'This operation cannot be retried in its current state')
+    end
+
     def team
-      @record.notification.team
+      @record.is_a?(Document) ? @record.team : @record.notification.team
     end
   end
 end
