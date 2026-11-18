@@ -25,11 +25,12 @@ RSpec.describe 'User profile API', openapi: { security: [{ 'BearerAuth' => [] }]
   it 'keeps the old email until the new address is confirmed',
      openapi: { request_pattern: 'PUT /api/v1/user' } do
     old_email = user.email
+    original_uid = user.uid
     put api_v1_user_path, params: { user: { email: 'new@example.com', current_password: user.password } },
                           headers: headers, as: :json
 
     expect(response).to have_http_status(:ok)
-    expect(json.fetch(:user)).to include(email: old_email, uid: old_email)
+    expect(json.fetch(:user)).to include(email: old_email, uid: original_uid)
     expect(user.reload.unconfirmed_email).to eq('new@example.com')
 
     get user_confirmation_path, params: { confirmation_token: user.confirmation_token },
@@ -37,7 +38,7 @@ RSpec.describe 'User profile API', openapi: { security: [{ 'BearerAuth' => [] }]
 
     expect(response).to have_http_status(:ok)
     expect(user.reload.email).to eq('new@example.com')
-    expect(user.uid).to eq('new@example.com')
+    expect(user.uid).to eq(original_uid)
   end
 
   it 'requires the current password for an email change' do

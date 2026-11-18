@@ -58,7 +58,6 @@ class User < ApplicationRecord
   validate :valid_preferences
 
   before_validation :init_uid
-  before_update :sync_confirmed_uid
 
   PUBLIC_ATTRIBUTES = %w[id email first_name last_name username created_at updated_at provider uid].freeze
 
@@ -122,12 +121,6 @@ class User < ApplicationRecord
   def init_uid
     return unless provider == 'email'
 
-    self.uid = email if uid.blank?
-  end
-
-  def sync_confirmed_uid
-    return unless provider == 'email' && will_save_change_to_email? && uid == email_in_database
-
-    self.uid = email
+    self.uid = SecureRandom.uuid if uid.blank?
   end
 end

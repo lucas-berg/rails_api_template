@@ -70,6 +70,34 @@ describe User do
     end
   end
 
+  describe 'UID generation' do
+    it 'assigns a distinct random UUID to each email account missing a UID' do
+      first = create(:user, uid: nil)
+      second = create(:user, uid: '')
+
+      expect(first.uid).to match(/\A[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/)
+      expect(second.uid).to match(/\A[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/)
+      expect(first.uid).not_to eq(second.uid)
+      expect(first.uid).not_to eq(first.email)
+    end
+
+    it 'preserves an explicitly supplied UID through ordinary profile updates' do
+      user = create(:user, uid: 'existing-identity')
+      user.update!(username: 'Updated name')
+
+      expect(user.reload.uid).to eq('existing-identity')
+    end
+
+    it 'keeps a legacy email-based UID after a new email address is confirmed' do
+      user = create(:user, email: 'legacy@example.com', uid: 'legacy@example.com')
+      user.update!(email: 'replacement@example.com')
+      described_class.confirm_by_token(user.confirmation_token)
+
+      expect(user.reload.email).to eq('replacement@example.com')
+      expect(user.uid).to eq('legacy@example.com')
+    end
+  end
+
   describe '.from_social_provider' do
     context 'when user does not exists' do
       let(:params) { attributes_for(:user) }
@@ -78,6 +106,14 @@ describe User do
         expect {
           described_class.from_social_provider('provider', params)
         }.to change(described_class, :count).by(1)
+      end
+
+      it 'uses and retains the external provider identifier' do
+        first = described_class.from_social_provider('provider', params.merge(id: 'external-user-123'))
+        second = described_class.from_social_provider('provider', params.merge(id: 'external-user-123'))
+
+        expect(first.uid).to eq('external-user-123')
+        expect(second).to eq(first)
       end
     end
 

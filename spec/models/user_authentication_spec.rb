@@ -22,12 +22,13 @@ RSpec.describe User do
   it 'rolls reconfirmation back if mail intent cannot be stored' do
     user = create(:user, uid: nil)
     previous_email = user.email
+    previous_uid = user.uid
     allow(MailDelivery).to receive(:enqueue_devise).and_raise(ActiveRecord::RecordInvalid)
 
     expect { user.update!(email: 'changed@example.com') }.to raise_error(ActiveRecord::RecordInvalid)
     expect(user.reload.email).to eq(previous_email)
     expect(user.unconfirmed_email).to be_nil
-    expect(user.uid).to eq(previous_email)
+    expect(user.uid).to eq(previous_uid)
   end
 
   it 'advances the stored credential version even for a stale password update' do
