@@ -13,7 +13,6 @@ This template comes with:
 ### Database Schema
 - **Users** - JWT-authenticated users with profile management
 - **Admin Users** - Separate admin accounts for administrative access
-- **Posts** - Example resource with full CRUD operations
 - **Settings** - Key-value configuration store
 - **Feature Flags** - Flipper feature flag system
 - **Background Jobs** - GoodJob queue tables
@@ -28,12 +27,6 @@ This template comes with:
 - **User Profile**
   - Get current user (`GET /api/v1/user`)
   - Update current user (`PUT /api/v1/user`)
-- **Posts** (Full CRUD with pagination & search)
-  - List posts (`GET /api/v1/posts`)
-  - Get post (`GET /api/v1/posts/:id`)
-  - Create post (`POST /api/v1/posts`)
-  - Update post (`PUT /api/v1/posts/:id`)
-  - Delete post (`DELETE /api/v1/posts/:id`)
 - **Settings**
   - Check minimum app version (`GET /api/v1/settings/must_update`)
 - **Health Check**
@@ -221,29 +214,9 @@ To illustrate, `bin/rails console` will run the console in the docker container 
 
 ## Getting Started with Your Project
 
-### Example Resource: Posts
-
-The template includes a fully functional `Post` resource that demonstrates best practices:
-
-```ruby
-# Model with user association
-class Post < ApplicationRecord
-  belongs_to :user
-end
-
-# Full CRUD API endpoints at /api/v1/posts
-- GET    /api/v1/posts           # List with pagination & search
-- GET    /api/v1/posts/:id       # Show single post
-- POST   /api/v1/posts           # Create post
-- PUT    /api/v1/posts/:id       # Update post
-- DELETE /api/v1/posts/:id       # Delete post
-```
-
-Use this as a template for creating your own resources!
-
 ### Creating a New Resource
 
-To scaffold a new resource similar to Posts:
+To scaffold an application resource:
 
 ```bash
 # Generate model, migration, controller, and specs
@@ -325,10 +298,10 @@ OPENAPI=1 bundle exec rspec spec/requests
 When writing request specs, tag them appropriately:
 
 ```ruby
-RSpec.describe 'Posts API', type: :request do
-  describe 'GET /api/v1/posts' do
-    it 'returns a list of posts' do
-      get '/api/v1/posts', headers: auth_headers
+RSpec.describe 'Health API', type: :request do
+  describe 'GET /api/v1/status' do
+    it 'reports the API status' do
+      get '/api/v1/status'
       expect(response).to have_http_status(:ok)
     end
   end

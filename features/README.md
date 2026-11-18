@@ -40,9 +40,8 @@ P0：对应产品上线前必需；P1：完善自助使用与运营；P2：按�
 
 - [Gemfile](../Gemfile)：Rails、PostgreSQL、Devise/JWT、ActiveAdmin、GoodJob、Flipper、Active Storage 相关依赖、分页搜索、文档及监控工具。
 - [User](../app/models/user.rb)：具备注册、密码认证和找回密码基础；未启用 confirmable，JWT 使用 Null 撤销策略；社交账号方法存在不等于完整社交登录已接入。
-- [路由](../config/routes.rb)：已有用户认证、资料、Posts、设置、健康检查及管理入口；本目录新增 API 均为拟议接口。
-- [数据库结构](../db/schema.rb)：已有 users、admin_users、posts、settings、Active Storage、Flipper 和 GoodJob 相关表；尚无组织、成员、套餐、订阅、用量及审计业务表。实施前还需核对迁移和目标环境。
-- [PostsController](../app/controllers/api/v1/posts_controller.rb)：当前全局查询 Post，不具备租户隔离，不能直接复用为生产多租户查询。
+- [路由](../config/routes.rb)：已有用户认证、资料、设置、健康检查及管理入口；本目录新增 API 均为拟议接口。
+- [数据库结构](../db/schema.rb)：已有 users、admin_users、settings、Active Storage、Flipper 和 GoodJob 相关表；尚无组织、成员、套餐、订阅、用量及审计业务表。实施前还需核对迁移和目标环境。
 - [Setting](../app/models/setting.rb)：全局键值配置，后续组织设置需独立作用域。
 
 ## 建议实施顺序

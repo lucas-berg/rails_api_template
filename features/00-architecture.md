@@ -14,7 +14,6 @@ erDiagram
   Price ||--o{ Subscription : selects
   Organization ||--o{ UsageEvent : consumes
   Organization ||--o{ AuditEvent : records
-  Organization ||--o{ Post : owns
 ```
 
 - User 是全局登录身份，Organization 是租户、资源及计费边界；Membership 表示用户在特定组织的权限。
