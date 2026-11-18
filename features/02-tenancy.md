@@ -1,5 +1,7 @@
 # 团队与多租户
 
+本轮修订（2026-11-18）：以 [五步计划](../doc/saas-implementation-plan.md) 为准，文件/头像/业务导出已移出范围，后台改为自建 /admin，授权改用 Pundit；旧验收结论需重新验证。
+
 - 优先级：P0。
 - 当前状态：Team/Member 与共享库显式租户隔离已实现。
 - 依赖：01、03；删除生命周期依赖 12，无商业计费或配额前置。
@@ -25,7 +27,7 @@
 - `GET/POST /api/v1/teams`：列出可见团队或创建团队。
 - `GET/PATCH/PUT /api/v1/teams/:id`：查看及按权限更新名称、语言、时区。
 - 不提供普通 Team DELETE；`POST /api/v1/teams/:team_id/deletion_request` 进入 12 的冷静期流程。
-- 平台暂停/恢复走受控 ActiveAdmin 动作，不能覆盖删除中的状态。
+- 平台暂停/恢复走受控 自建 Rails /admin 动作，不能覆盖删除中的状态。
 
 ## 实现与并发边界
 

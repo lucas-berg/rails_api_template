@@ -1,61 +1,41 @@
 # SaaS 运行与恢复说明
 
+本轮目标：保留账号、团队、邀请、通知、审计及删除；使用 Pundit 授权和自建 Rails /admin。文件、头像和业务导出不再提供。
+
 ## 配置与启动
 
-复制 `.env.sample`，配置 PostgreSQL、`JWT_SECRET_KEY`、`APP_PUBLIC_URL`、`DEFAULT_EMAIL_SENDER`、SendGrid SMTP 凭据及 `RATE_LIMIT_REDIS_URL`。生产环境必须提供稳定的 `SECRET_KEY_BASE`，邮件临时令牌密文也依赖它；更换密钥前处理待发送邮件，避免旧密文无法解密。
+按 .env.sample 配置 PostgreSQL、JWT_SECRET_KEY、稳定的 SECRET_KEY_BASE、APP_PUBLIC_URL、DEFAULT_EMAIL_SENDER、SMTP 和 RATE_LIMIT_REDIS_URL。确认与邀请链接使用公开地址，独立邀请前端可配置 INVITATION_ACCEPT_URL。
 
-`APP_PUBLIC_URL` 用于验证和邀请链接。独立产品前端可以配置 `INVITATION_ACCEPT_URL`；默认使用本应用最小邀请确认页面。`CORS_ALLOWED_ORIGINS` 为逗号分隔的完整来源，生产环境不默认允许任何跨站来源。
+本地 Docker Compose 包含 Web、PostgreSQL 和 Redis；本机启动也需要数据库与 Redis。GoodJob 使用 PostgreSQL，Redis 仅用于共享限流。生产单独运行 `bundle exec good_job start`，启用邮件、通知和删除扫描器。
 
-本地 Docker Compose 包含 PostgreSQL 和 Redis；使用 `bin/dev` 在本机运行时也需要相应服务。GoodJob 仍使用 PostgreSQL，Redis 只用于共享限流。
+生产明确配置 CORS_ALLOWED_ORIGINS。新用户必须确认邮箱；历史未知邮箱不会自动确认。JWT 固定90天，退出/撤销、改密和封禁即时失效，恢复不会复活旧凭证。
 
-执行数据库迁移后启动应用和 GoodJob 工作进程。生产环境单独运行 `bundle exec good_job start`，开启已配置的 cron 扫描；不要仅启动 Web 进程却遗漏任务进程。
+## 登录与授权
 
-## 账号与权限
+Devise/JWT 验证身份，Pundit 判断可见资源和允许动作。User 与 AdminUser 分开登录；JSON API 仅使用 Bearer，后台浏览器使用 AdminUser Cookie 与 CSRF。任务根据实际记录恢复上下文，身份、角色、团队状态均在执行时重新检查。
 
-新用户需验证邮箱，已有开发用户也不会自动确认。JWT 固定 90 天有效，不滑动续期。密码修改、密码重置、封禁和会话撤销立即失效；用户恢复不会复活旧凭证。
+平台入口为 /admin，登录 /admin/login，退出 /admin/logout。support 只读；super_admin 可维护平台管理员、封禁/恢复账号、暂停/恢复团队、重试失败投递和删除任务，必须提供原因并留下审计。GoodJob 和 Flipper 也只允许 super_admin。
 
-账号会话 API 只显示 API JWT，不将浏览器 Cookie 会话冒充为 API 设备。会话记录保存请求来源 IP 及最长 256 字符、已去除控制字符的 User-Agent，不推断具体设备型号；这些信息只对会话本人可见。浏览器认证继续保留 CSRF，并校验凭证版本。
-
-平台支持账号使用 `support`，只能查询允许的资源。`super_admin` 可管理平台管理员、暂停/恢复账号与团队、重试失败邮件；这些操作填写原因并记录审计。GoodJob 和 Flipper 同样仅向 super_admin 开放。开发种子只在 development 创建演示管理员，不在生产初始化默认密码。
+后台按明确字段展示，拒绝自动 CSV/JSON 导出；不展示密码、JWT摘要、邮件密文和任务租约。无硬删除或批量写操作。
 
 ## 就绪与限流
 
-- `GET /api/v1/status`：进程存活，保持原响应。
-- `GET /api/v1/ready`：检查 PostgreSQL 和 Redis；依赖不可用时返回 503，不返回内部地址或凭据。
-- 登录默认每 IP 每分钟 10 次。
-- 邮箱确认/重置分别每邮箱每 15 分钟 3 次，邮箱规范化后只以摘要作为计数键。
-- 邀请创建/重发默认每团队每小时 30 次，在成员及动作授权之后计数，其他团队的攻击者不能消耗配额。
-- 限流返回 429 和 Retry-After。配置通过 `LOGINS_PER_MINUTE`、`RECOVERY_PER_PERIOD`、`INVITATIONS_PER_HOUR` 调整。
+- GET /api/v1/status 保持进程存活接口。
+- GET /api/v1/ready 检查 PostgreSQL/Redis，不可用返回503且隐藏内部配置。
+- 登录每IP每分钟10次；确认/重置分别每邮箱每15分钟3次；邀请每团队每小时30次。
+- 多实例共享 Redis；邮箱计数键使用摘要。429 返回 Retry-After。
+- request_id、job_id、team_id 关联日志；记录授权后的团队上下文，任务结束或失败清理，不记录密码/完整令牌/邮件正文。
 
-多实例共享同一个限流 Redis。测试以独立缓存覆盖限流行为，另有真实 Redis 双客户端共享计数测试；不要将各进程 MemoryStore 作为生产限流方案。
+## 邮件与通知恢复
 
-## 邮件故障处理
+业务写入与邮件/通知意图同事务，提交后投递。任务入队失败由周期扫描补投；发送中的租约防止旧任务覆盖新尝试结果，SMTP 本身不能保证恰好一次。
 
-认证和邀请写入事务时创建 MailDelivery。提交后入队失败不会丢失意图，周期扫描会重新投递。投递记录包含状态、尝试次数、下次时间和错误类别，不显示令牌密文或原始异常正文。
+检查 SMTP、工作进程和队列，修复后由 super_admin 对失败记录填写原因重试。过期、撤销、已接受或邀请人失权的邀请不再发送；移除成员不再收到团队活动消息。
 
-1. 检查公开地址、发件人和 SMTP 凭据，以及 GoodJob 工作进程和队列积压。
-2. 在管理后台查询失败记录；等待退避中的 pending 任务会自动重试。
-3. 修复渠道后由 super_admin 对 failed 记录填写原因并重试。过期、已接受、已撤销或邀请者已失权的邀请不会继续发送。
-4. 发送中的任务有租约，进程中断后扫描器可恢复；只有持有当前租约的任务能落库发送结果。
+用户语言优先于团队语言，最后回退en；支持en和zh-CN。安全通知不受可选活动偏好影响。删除恢复见 [删除手册](saas-data-lifecycle.md)。
 
-SMTP 成功后进程若在记录结果前中断，重试可能发送重复邮件；同一链接仍受服务端单次使用与邀请状态约束。不要把邮件次数当作业务操作次数。
+## 发布与回退
 
-## 发布与回归
+先运行前向迁移、检查管理员和依赖就绪，再启动任务进程。模块移除迁移应在旧版本工作进程停止后执行，不能让旧 worker 继续处理文件/导出任务。
 
-前三步作为一个版本发布：认证、团队权限、审计和后台必须一起验收。对新部署先运行迁移、检查种子与管理员角色、启动工作进程，再检查 ready 和认证/邀请闭环。
-
-发布前运行完整 RSpec 和 `bundle exec rails code:analysis`，更新模型注释与 OpenAPI。生成 OpenAPI 使用空的临时输出文件，确认差异后再替换 `doc/openapi.yaml`；不要在旧生成文件上追加。
-
-发现错误先停止受影响写入口并保留日志、审计及任务记录。数据库变更以加表和字段为主；已有业务数据时不要直接逆向删除表来恢复旧应用。保留数据库快照，选择修复向前发布或经过验证的应用回退。
-
-任务排查关联 request_id、job_id 和 team_id；任务保存来源请求 ID，从实际记录恢复团队上下文，执行结束或失败后清理上下文。日志不得记录密码、完整 JWT、确认链接或解密后的邮件内容。数据库恢复与最终删除台账的操作见 [数据生命周期运行说明](saas-data-lifecycle.md)。
-
-## 通知与私有文件
-
-站内消息和邮件根据用户语言、团队语言、en 的顺序回退，目前支持 en 和 zh-CN。安全消息不受可选活动通知开关影响。发送前再次检查成员和团队状态，普通团队消息不会继续发送给已移除成员。
-
-文件默认限制为 10 MiB，可用 `MAX_UPLOAD_BYTES` 调整，最大 100 MiB；仅接受真实 PNG、JPEG 或 PDF。检查格式完整性及图片像素上限，不宣称提供杀毒扫描。上传完成并验证后才可下载，预览仅支持图片。默认 Active Storage 公开路由关闭；下载经过团队授权后由应用返回内容，不暴露 blob key 或 signed ID。
-
-生产需为 Active Storage 配置持久、私有且所有工作进程可访问的存储；默认本地磁盘目录不会自动成为分布式存储。`CleanupDocumentsJob` 每十分钟处理未完成上传和失败清理。后台可查看状态并由 super_admin 填写原因重试失败清理；在存储确认删除成功前保留必要记录及重试能力。
-
-头像经同一上传与验证流程设置，`GET /api/v1/teams/:team_id/avatar` 读取本人在该团队可见的当前选择。团队摘要与首次使用 API 仅返回授权范围内的统计和建议动作，未提供完整产品控制台。
+发布前运行完整RSpec、代码分析、资源构建和OpenAPI一致性检查；结果见 [验收记录](saas-validation.md)。数据库移除变更不能靠回退应用代码恢复已移除的业务记录；有历史数据的环境应先保存备份。开发与生产数据库不在本轮自动迁移清空。

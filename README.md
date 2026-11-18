@@ -4,11 +4,12 @@
 
 Rails API Base is a boilerplate project for JSON RESTful APIs. It follows community best practices in terms of standards, security, and maintainability, integrating a comprehensive suite of testing and code quality tools. Built on Rails 8.1 and Ruby 3.3.13.
 
-The template includes a plug-and-play Administration console powered by [ActiveAdmin](https://github.com/activeadmin/activeadmin), background job processing with [GoodJob](https://github.com/bensheldon/good_job), and feature flag management via [Flipper](https://github.com/jnunemaker/flipper).
 
-The SaaS foundation uses **Team** as the tenant and **Member** for team roles, with explicit Ruby policies and no Pundit. The [five-step implementation plan](doc/saas-implementation-plan.md), [operations guide](doc/saas-operations.md), and [data lifecycle runbook](doc/saas-data-lifecycle.md) and [validation record](doc/saas-validation.md) describe the supported flows and recovery procedures. Billing, commercial quotas, API keys, webhooks, enterprise SSO, and business data imports remain outside this implementation.
+The SaaS foundation uses **Team** as the tenant and **Member** for team roles, with Pundit policies and scopes; Devise/JWT handles authentication. The [five-step implementation plan](doc/saas-implementation-plan.md), [operations guide](doc/saas-operations.md), and [data lifecycle runbook](doc/saas-data-lifecycle.md) and [validation record](doc/saas-validation.md) describe the supported flows and recovery procedures. Billing, commercial quotas, API keys, webhooks, enterprise SSO, and business data imports remain outside this implementation.
 
 ## Features
+
+The current revision removes file uploads, avatars and business exports, replaces ActiveAdmin with a custom `/admin`, and adopts Pundit authorization. Implementation and verification follow the [updated plan](doc/saas-implementation-plan.md); previous verification results are historical.
 
 This template comes with:
 
@@ -17,8 +18,6 @@ This template comes with:
 - **Teams, Members and Invitations** - Explicit team scope, owner/admin/member/viewer roles, seven-day invitations and protected ownership transfers
 - **Admin Users and Audit Events** - Separate super_admin/support access and transactional audit records
 - **Mail Deliveries and Notifications** - Transactional mail outbox, mandatory security messages, optional activity preferences, retryable delivery and en/zh-CN text
-- **Documents** - Private verified PNG/JPEG/PDF uploads, authorized downloads/previews and avatars
-- **Data Exports and Deletion Requests** - Private JSON exports, delayed deletion, resumable cleanup and an independent deletion ledger
 - **Settings** - Key-value configuration store
 - **Feature Flags** - Flipper feature flag system
 - **Background Jobs** - GoodJob queue tables
@@ -41,10 +40,8 @@ This template comes with:
   - Team members, invitations, settings, ownership transfers and audit events under `/api/v1/teams/:team_id`
   - Accept invitations (`POST /api/v1/invitations/accept`), with a minimal browser confirmation page at `/invitations/accept`
 - **Internal Features**
-  - Team notifications, uploads, files, avatar, dashboard and onboarding under `/api/v1/teams/:team_id`
+  - Team notifications, dashboard and onboarding under `/api/v1/teams/:team_id`
   - Own security notifications and notification preferences under `/api/v1`
-- **Data Lifecycle**
-  - Request/list/view/download exports under `/api/v1/teams/:team_id/exports`
   - Request account or team deletion, query/cancel own requests under `/api/v1/deletion_requests/:id`
   - `DELETE /users` schedules account deletion and requires `current_password`; it does not immediately destroy the account
 - **Health Check**
@@ -54,7 +51,7 @@ This template comes with:
 New SaaS endpoints return `{ data, meta }` and structured errors with `request_id`; existing authentication/profile response envelopes are preserved. The full contract is generated in [doc/openapi.yaml](doc/openapi.yaml).
 
 ### Administration Panel
-- ActiveAdmin dashboard with Arctic Admin theme
+- Custom Rails /admin dashboard with explicit controllers and views
 - User management interface
 - Admin user management
 - Read-only support access; reasoned and audited super_admin operations
@@ -70,7 +67,6 @@ New SaaS endpoints return `{ data, meta }` and structured errors with `request_i
 - **Rate Limits**: Redis shared counters across application instances
 - **Feature Flags**: Flipper with ActiveRecord adapter
 - **Pagination**: Pagy (high-performance pagination)
-- **Search/Filtering**: Ransack for query building
 - **Error Tracking**: Sentry Ruby SDK for application instrumentation
 - **Performance Monitoring**: New Relic APM
 - **Code Quality**: RuboCop, Reek, Rails Best Practices, Brakeman
@@ -145,7 +141,8 @@ To illustrate, `bin/rails console` will run the console in the docker container 
 - [PostgreSQL](https://github.com/ged/ruby-pg) - Database adapter
 - [Bootsnap](https://github.com/Shopify/bootsnap) - Boot time optimization
 
-### Authentication
+### Authentication and Authorization
+- [Pundit](https://github.com/varvet/pundit) - Resource authorization and scopes; login remains with Devise/JWT
 - [Devise](https://github.com/heartcombo/devise) - Authentication framework
 - [Devise JWT](https://github.com/waiting-for-dev/devise-jwt) - JWT token authentication for APIs
 
@@ -157,13 +154,11 @@ To illustrate, `bin/rails console` will run the console in the docker container 
 - [OJ](https://github.com/ohler55/oj) - Fast JSON parser
 
 ### Admin & UI
-- [ActiveAdmin](https://github.com/activeadmin/activeadmin) - Administration framework
-- [Draper](https://github.com/drapergem/draper) - View decorators
 - [JS Bundling](https://github.com/rails/jsbundling-rails) - JavaScript bundling with esbuild
 - [CSS Bundling](https://github.com/rails/cssbundling-rails) - CSS bundling with Sass
 - [Turbo Rails](https://github.com/hotwired/turbo-rails) - Fast page navigation and form submissions
 - [Stimulus Rails](https://github.com/hotwired/stimulus-rails) - Lightweight JavaScript interactions
-- [Tailwind CSS Rails](https://github.com/rails/tailwindcss-rails) - Utility CSS for ActiveAdmin
+- [Tailwind CSS Rails](https://github.com/rails/tailwindcss-rails) - Utility CSS for the authentication pages
 
 ### Background Jobs & Feature Flags
 - [GoodJob](https://github.com/bensheldon/good_job) - PostgreSQL-based background jobs
@@ -173,11 +168,9 @@ To illustrate, `bin/rails console` will run the console in the docker container 
 
 ### Utilities & Tools
 - [Pagy](https://github.com/ddnexus/pagy) - Fast pagination
-- [Ransack](https://github.com/activerecord-hackery/ransack) - Object-based searching
 - [YAAF](https://github.com/tianlu1677/yaaf) - Form objects
 - [Enumerize](https://github.com/brainspec/enumerize) - Enumerated attributes
 - [Groupdate](https://github.com/ankane/groupdate) - Time series grouping
-- [Active Storage Base64](https://github.com/tianlu1677/active-storage-base64) - Base64 file uploads
 - [RubyLLM](https://rubyllm.com/) - Unified access to LLM providers
 
 ### Monitoring & Error Tracking

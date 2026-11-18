@@ -1,5 +1,7 @@
 # 功能开关与发布配置
 
+本轮修订（2026-11-18）：以 [五步计划](../doc/saas-implementation-plan.md) 为准，文件/头像/业务导出已移出范围，后台改为自建 /admin，授权改用 Pundit；旧验收结论需重新验证。
+
 - 优先级：P1
 - 当前基础：已有 Flipper、配置文件和 Team actor；/admin/feature-flags 仅 super_admin 可进入。
 - 文档状态：部分基础已实现；下列开关元数据、完整变更审计和到期清理仍为扩展设计，尚未验收。
