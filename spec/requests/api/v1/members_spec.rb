@@ -15,13 +15,20 @@ RSpec.describe 'Members API', openapi: { security: [{ 'BearerAuth' => [] }] } do
     expect(json[:data].first[:user]).not_to have_key(:encrypted_password)
   end
 
-  it 'allows an owner to change roles and removes access immediately using an existing JWT' do
+  %i[patch put].each do |method|
+    it "allows an owner to change an ordinary member role using #{method.upcase}" do
+      member = create(:member, team:)
+      public_send(method, "/api/v1/teams/#{team.id}/members/#{member.id}",
+                  params: { member: { role: 'admin' } }, headers:, as: :json)
+      expect(response).to have_http_status(:ok)
+      expect(member.reload).to be_admin
+    end
+  end
+
+  it 'removes member access immediately using an existing JWT',
+     openapi: { request_pattern: 'DELETE /api/v1/teams/{team_id}/members/{id}' } do
     member = create(:member, team:)
     member_headers = auth_headers(member.user)
-    patch "/api/v1/teams/#{team.id}/members/#{member.id}", params: { member: { role: 'admin' } }, headers:, as: :json
-    expect(response).to have_http_status(:ok)
-    expect(member.reload).to be_admin
-
     delete "/api/v1/teams/#{team.id}/members/#{member.id}", headers: headers
     expect(response).to have_http_status(:no_content)
     get "/api/v1/teams/#{team.id}", headers: member_headers

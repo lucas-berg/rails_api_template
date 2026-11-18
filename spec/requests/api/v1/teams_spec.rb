@@ -28,13 +28,18 @@ RSpec.describe 'Teams API', openapi: { security: [{ 'BearerAuth' => [] }] } do
     expect(Current.team).to be_nil
   end
 
-  it 'returns the current team and updates permitted settings' do
+  it 'returns the authorized current team' do
     get "/api/v1/teams/#{team.id}", headers: headers
     expect(response).to have_http_status(:ok)
+    expect(json[:data]).to include(id: team.id, name: 'Primary team')
+  end
 
-    patch "/api/v1/teams/#{team.id}", params: { team: { name: 'Renamed' } }, headers:, as: :json
-    expect(response).to have_http_status(:ok)
-    expect(team.reload.name).to eq('Renamed')
+  %i[patch put].each do |method|
+    it "updates permitted team fields using #{method.upcase}" do
+      public_send(method, "/api/v1/teams/#{team.id}", params: { team: { name: 'Renamed' } }, headers:, as: :json)
+      expect(response).to have_http_status(:ok)
+      expect(team.reload.name).to eq('Renamed')
+    end
   end
 
   it 'hides another team and rejects forged ownership attributes' do
@@ -72,24 +77,33 @@ RSpec.describe 'Teams API', openapi: { security: [{ 'BearerAuth' => [] }] } do
     expect(json.dig(:errors, 0, :code)).to eq('team_suspended')
   end
 
-  it 'reads settings, validates updates, and rejects unknown fields' do
+  it 'reads only the allowed team settings' do
     get "/api/v1/teams/#{team.id}/settings", headers: headers
     expect(response).to have_http_status(:ok)
     expect(json[:data]).to include(timezone: 'UTC', locale: 'en')
+  end
 
-    patch "/api/v1/teams/#{team.id}/settings", params: { settings: { locale: 'zh-CN' } }, headers:, as: :json
-    expect(response).to have_http_status(:ok)
-    expect(team.reload.locale).to eq('zh-CN')
+  %i[patch put].each do |method|
+    it "updates valid team settings using #{method.upcase}" do
+      public_send(method, "/api/v1/teams/#{team.id}/settings", params: { settings: { locale: 'zh-CN' } }, headers:,
+                                                               as: :json)
+      expect(response).to have_http_status(:ok)
+      expect(team.reload.locale).to eq('zh-CN')
+    end
+  end
 
+  it 'rejects unknown team setting fields' do
     patch "/api/v1/teams/#{team.id}/settings", params: { settings: { secret_key: 'bad' } }, headers:, as: :json
     expect(response).to have_http_status(:bad_request)
   end
 
-  it 'only allows managers to read team audit events' do
+  it 'lets managers read the team audit history' do
     get "/api/v1/teams/#{team.id}/audit_events", headers: headers
     expect(response).to have_http_status(:ok)
     expect(json[:data].pluck(:action)).to include('team.created')
+  end
 
+  it 'denies audit history to ordinary members' do
     member = create(:member, team:)
     get "/api/v1/teams/#{team.id}/audit_events", headers: auth_headers(member.user)
     expect(response).to have_http_status(:forbidden)

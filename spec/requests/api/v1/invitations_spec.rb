@@ -56,7 +56,8 @@ RSpec.describe 'Invitations API', openapi: { security: [{ 'BearerAuth' => [] }] 
     expect(team.active_members.exists?(user: recipient)).to be(false)
   end
 
-  it 'rotates the token when resending and rejects revoked invitations' do
+  it 'rotates the token when resending and rejects the previous link',
+     openapi: { request_pattern: 'POST /api/v1/teams/{team_id}/invitations/{id}/resend' } do
     invitation, old_token = create_invitation
     post "/api/v1/teams/#{team.id}/invitations/#{invitation.id}/resend", headers:, as: :json
     expect(response).to have_http_status(:ok)
@@ -65,9 +66,14 @@ RSpec.describe 'Invitations API', openapi: { security: [{ 'BearerAuth' => [] }] 
 
     post '/api/v1/invitations/accept', params: { token: old_token }, headers: auth_headers(recipient), as: :json
     expect(response).to have_http_status(:not_found)
+  end
+
+  it 'revokes an invitation and rejects its existing link',
+     openapi: { request_pattern: 'DELETE /api/v1/teams/{team_id}/invitations/{id}' } do
+    invitation, token = create_invitation
     delete "/api/v1/teams/#{team.id}/invitations/#{invitation.id}", headers: headers
     expect(response).to have_http_status(:no_content)
-    post '/api/v1/invitations/accept', params: { token: new_token }, headers: auth_headers(recipient), as: :json
+    post '/api/v1/invitations/accept', params: { token: }, headers: auth_headers(recipient), as: :json
     expect(response).to have_http_status(:conflict)
   end
 

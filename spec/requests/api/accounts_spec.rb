@@ -41,4 +41,13 @@ RSpec.describe 'JSON accounts' do
     expect(response.body).to be_empty
     expect(user.reload).to be_valid_password('new-sample-password')
   end
+
+  it 'sets a new password through the PATCH reset alias' do
+    user = create(:user)
+    token = user.send_reset_password_instructions
+    patch user_password_path, params: { user: { reset_password_token: token, password: 'new-sample-password',
+                                                password_confirmation: 'new-sample-password' } }, as: :json
+    expect(response).to have_http_status(:no_content)
+    expect(user.reload).to be_valid_password('new-sample-password')
+  end
 end

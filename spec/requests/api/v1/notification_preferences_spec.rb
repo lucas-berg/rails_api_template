@@ -44,4 +44,11 @@ RSpec.describe 'Notification preferences', openapi: { security: [{ 'BearerAuth' 
                                               params: { notification_preferences: { user_id: 123 } }, as: :json
     expect(response).to have_http_status(:bad_request)
   end
+
+  it 'updates optional notification channels through the PUT alias' do
+    put '/api/v1/notification_preferences', headers: headers,
+                                            params: { notification_preferences: { activity_email: true } }, as: :json
+    expect(response).to have_http_status(:ok)
+    expect(NotificationPreference.for(user).activity_email).to be(true)
+  end
 end

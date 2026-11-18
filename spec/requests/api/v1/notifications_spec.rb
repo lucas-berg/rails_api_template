@@ -68,7 +68,10 @@ RSpec.describe 'Notifications API', openapi: { security: [{ 'BearerAuth' => [] }
     get '/api/v1/security_notifications', headers: headers
     expect(response).to have_http_status(:ok)
     expect(json.fetch(:data).pluck(:id)).to eq([security.id])
+  end
 
+  it 'marks a personal security notification as read' do
+    security = Notifications::Publish.call(user:, kind: 'password_changed', event_key: 'password-read')
     post "/api/v1/security_notifications/#{security.id}/read", headers: headers
     expect(response).to have_http_status(:ok)
     expect(security.reload.read_at).to be_present

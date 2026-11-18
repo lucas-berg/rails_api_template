@@ -23,25 +23,41 @@ RSpec.describe 'Private files API', openapi: { security: [{ 'BearerAuth' => [] }
     document.reload
   end
 
-  it 'uploads, completes, verifies and privately streams a file' do
+  it 'accepts a multipart upload as quarantined metadata without exposing storage identifiers' do
     document = upload_file
     expect(response).to have_http_status(:created)
     expect(json[:data]).to include(status: 'uploading', filename: 'sample.png')
     expect(json[:data]).not_to include(:key, :signed_id, :url)
+    expect(document).not_to be_ready
+  end
 
+  it 'refuses to download an upload before verification' do
+    document = upload_file
     get "/api/v1/teams/#{team.id}/files/#{document.id}/download", headers: headers
     expect(response).to have_http_status(:conflict)
+  end
 
+  it 'accepts completion and queues content verification' do
+    document = upload_file
     complete_file(document)
     expect(response).to have_http_status(:accepted)
-    VerifyDocumentJob.perform_now(document.id)
+    expect(document.reload.status).to eq('processing')
+    expect(enqueued_jobs).to include(hash_including(job: VerifyDocumentJob, args: [document.id]))
+  end
 
-    get "/api/v1/teams/#{team.id}/files/#{document.id}/download", headers: headers
-    expect(response).to have_http_status(:ok)
-    expect(response.body.b).to eq(png_bytes)
-    expect(response.headers['Content-Disposition']).to start_with('attachment;')
-    expect(response.headers['X-Content-Type-Options']).to eq('nosniff')
-    expect(response.headers['Cache-Control']).to include('no-store')
+  [['PNG', 'image/png', 'sample.png', :png_bytes], ['JPEG', 'image/jpeg', 'sample.jpg', :jpeg_bytes],
+   ['PDF', 'application/pdf', 'sample.pdf', :pdf_bytes]].each do |label, content_type, filename, content_method|
+    it "privately downloads a verified #{label} as an attachment" do
+      contents = public_send(content_method)
+      document = ready_file(multipart_upload(contents, content_type:, filename:))
+      get "/api/v1/teams/#{team.id}/files/#{document.id}/download", headers: headers
+      expect(response).to have_http_status(:ok)
+      expect(response.body.b).to eq(contents)
+      expect(response.media_type).to eq(content_type)
+      expect(response.headers['Content-Disposition']).to start_with('attachment;')
+      expect(response.headers['X-Content-Type-Options']).to eq('nosniff')
+      expect(response.headers['Cache-Control']).to include('no-store')
+    end
   end
 
   it 'does not requeue an upload when completion is repeated' do
@@ -56,14 +72,20 @@ RSpec.describe 'Private files API', openapi: { security: [{ 'BearerAuth' => [] }
     expect(response).to have_http_status(:ok)
   end
 
-  it 'lists only files in the current team and returns file metadata' do
+  it 'lists only files in the current team' do
     document = ready_file
     create(:document)
     get "/api/v1/teams/#{team.id}/files", headers: headers
     expect(response).to have_http_status(:ok)
     expect(json[:data].pluck(:id)).to eq([document.id])
+  end
+
+  it 'returns verified file metadata without a public storage URL' do
+    document = ready_file
     get "/api/v1/teams/#{team.id}/files/#{document.id}", headers: headers
+    expect(response).to have_http_status(:ok)
     expect(json.dig(:data, :content_type)).to eq('image/png')
+    expect(json[:data]).not_to include(:key, :signed_id, :url)
   end
 
   it 'requires authentication and hides cross-team files even from a member of both teams' do
@@ -75,7 +97,7 @@ RSpec.describe 'Private files API', openapi: { security: [{ 'BearerAuth' => [] }
     expect(response).to have_http_status(:not_found)
   end
 
-  it 'rejects signed IDs as upload inputs and disables unprotected storage routes' do
+  it 'rejects signed IDs as upload inputs and disables unprotected storage routes', openapi: false do
     document = ready_file
     signed_id = document.file.blob.signed_id
     post "/api/v1/teams/#{team.id}/uploads", params: { file: signed_id }, headers:, as: :json
@@ -137,18 +159,23 @@ RSpec.describe 'Private files API', openapi: { security: [{ 'BearerAuth' => [] }
     expect(document.reload.status).to eq('deleted')
   end
 
-  it 'previews verified images but never previews PDF content inline' do
+  it 'previews a verified image with restrictive browser headers' do
     image = ready_file
     get "/api/v1/teams/#{team.id}/files/#{image.id}/preview", headers: headers
     expect(response).to have_http_status(:ok)
     expect(response.headers['Content-Disposition']).to start_with('inline;')
     expect(response.headers['Content-Security-Policy']).to include('sandbox')
+    expect(response.body.b).to eq(png_bytes)
+  end
+
+  it 'refuses to preview PDF content inline' do
     pdf = ready_file(multipart_upload(pdf_bytes, content_type: 'application/pdf', filename: 'sample.pdf'))
     get "/api/v1/teams/#{team.id}/files/#{pdf.id}/preview", headers: headers
     expect(response).to have_http_status(:conflict)
   end
 
-  it 'requires a verified own image for an avatar and clears its reference on deletion' do
+  it 'requires a verified own image for an avatar and clears its reference on deletion',
+     openapi: { request_pattern: 'PATCH /api/v1/teams/{team_id}/avatar' } do
     document = upload_file
     patch "/api/v1/teams/#{team.id}/avatar", params: { avatar: { document_id: document.id } }, headers:, as: :json
     expect(response).to have_http_status(:conflict)
@@ -167,5 +194,12 @@ RSpec.describe 'Private files API', openapi: { security: [{ 'BearerAuth' => [] }
     delete "/api/v1/teams/#{team.id}/avatar", headers: headers
     expect(response).to have_http_status(:no_content)
     expect(owner.reload.avatar_document_id).to be_nil
+  end
+
+  it 'selects a verified avatar through the PUT alias' do
+    document = ready_file
+    put "/api/v1/teams/#{team.id}/avatar", params: { avatar: { document_id: document.id } }, headers:, as: :json
+    expect(response).to have_http_status(:ok)
+    expect(owner.reload.avatar_document_id).to eq(document.id)
   end
 end
