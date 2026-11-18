@@ -45,7 +45,13 @@ module Invitations
       @invitation.update!(accepted_at: Time.current)
       AuditEvent.record!(actor: @actor, action: 'invitation.accepted', target: @invitation, team: @team,
                          request_id: @request_id, metadata: { member_id: member.id })
+      publish_acceptance
       member
+    end
+
+    def publish_acceptance
+      Notifications::Publish.call(user: @actor, team: @team, kind: 'invitation_accepted',
+                                  event_key: "invitation:#{@invitation.id}:accepted")
     end
 
     def validate_acceptance!

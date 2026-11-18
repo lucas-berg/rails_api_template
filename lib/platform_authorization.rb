@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 class PlatformAuthorization < ActiveAdmin::AuthorizationAdapter
-  READABLE = %w[User AdminUser Team Member Invitation AuditEvent AuthSession MailDelivery].freeze
+  READABLE = %w[User AdminUser Team Member Invitation AuditEvent AuthSession MailDelivery Notification
+                NotificationDelivery].freeze
   ACTIONS = { 'AdminUser' => %i[create update], 'User' => %i[suspend restore],
-              'Team' => %i[suspend restore], 'MailDelivery' => [:retry_delivery] }.freeze
+              'Team' => %i[suspend restore], 'MailDelivery' => [:retry_delivery],
+              'NotificationDelivery' => [:retry_delivery] }.freeze
 
   def authorized?(action, subject = nil)
     return false unless user.is_a?(AdminUser)

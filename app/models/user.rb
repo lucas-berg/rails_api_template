@@ -40,6 +40,9 @@ class User < ApplicationRecord
   include UserAuthentication
   include TeamMemberships
 
+  has_many :notifications, dependent: :restrict_with_error
+  has_one :notification_preference, dependent: :restrict_with_error
+
   validates :uid, uniqueness: { scope: :provider }
 
   before_validation :init_uid

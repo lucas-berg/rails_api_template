@@ -13,6 +13,10 @@ RSpec.describe Teams::Create do
   after do
     user_ids = [owner, recipient, other].compact.map(&:id)
     team_id = team&.id
+    notifications = Notification.where(user_id: user_ids)
+    NotificationDelivery.where(notification_id: notifications.select(:id)).delete_all
+    notifications.delete_all
+    NotificationPreference.where(user_id: user_ids).delete_all
     MailDelivery.where(user_id: user_ids).delete_all
     AuditEvent.where(team_id: team_id).delete_all
     Invitation.where(team_id: team_id).delete_all
@@ -55,6 +59,7 @@ RSpec.describe Teams::Create do
     expect(Member.where(team_id: team.id, user_id: recipient.id).count).to eq(1)
     expect(invitation.reload.accepted_at).to be_present
     expect(AuditEvent.where(team_id: team.id, action: 'invitation.accepted').count).to eq(1)
+    expect(Notification.where(user_id: recipient.id, kind: 'invitation_accepted').count).to eq(1)
   end
 
   it 'permits only one simultaneous ownership transfer from the same owner' do

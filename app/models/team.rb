@@ -8,6 +8,7 @@ class Team < ApplicationRecord
   has_many :users, through: :active_members
   has_many :invitations, dependent: :restrict_with_error
   has_many :audit_events, dependent: :restrict_with_error
+  has_many :notifications, dependent: :restrict_with_error
 
   enum :status, { active: 'active', suspended: 'suspended' }, validate: true
 

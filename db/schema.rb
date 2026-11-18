@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -60,7 +60,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_130000) do
     t.string "role", default: "support", null: false
     t.index ["email"], name: "index_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
-    t.check_constraint "role::text = ANY (ARRAY['super_admin'::character varying, 'support'::character varying]::text[])", name: "admin_users_role_check"
+    t.check_constraint "role::text = ANY (ARRAY['super_admin'::character varying::text, 'support'::character varying::text])", name: "admin_users_role_check"
   end
 
   create_table "audit_events", force: :cascade do |t|
@@ -245,7 +245,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_130000) do
     t.index ["team_id", "normalized_email"], name: "index_invitations_on_pending_email", unique: true, where: "((accepted_at IS NULL) AND (revoked_at IS NULL))"
     t.index ["team_id"], name: "index_invitations_on_team_id"
     t.index ["token_digest"], name: "index_invitations_on_token_digest", unique: true
-    t.check_constraint "role::text = ANY (ARRAY['admin'::character varying, 'member'::character varying, 'viewer'::character varying]::text[])", name: "invitations_role_allowed"
+    t.check_constraint "role::text = ANY (ARRAY['admin'::character varying::text, 'member'::character varying::text, 'viewer'::character varying::text])", name: "invitations_role_allowed"
   end
 
   create_table "jwt_denylists", force: :cascade do |t|
@@ -278,7 +278,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_130000) do
     t.index ["team_id"], name: "index_mail_deliveries_on_team_id"
     t.index ["user_id"], name: "index_mail_deliveries_on_user_id"
     t.check_constraint "attempts >= 0", name: "mail_deliveries_attempts_valid"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'sending'::character varying, 'sent'::character varying, 'failed'::character varying, 'skipped'::character varying]::text[])", name: "mail_deliveries_status_valid"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'sending'::character varying::text, 'sent'::character varying::text, 'failed'::character varying::text, 'skipped'::character varying::text])", name: "mail_deliveries_status_valid"
   end
 
   create_table "members", force: :cascade do |t|
@@ -291,8 +291,54 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_130000) do
     t.index ["team_id", "user_id"], name: "index_members_on_team_id_and_user_id", unique: true
     t.index ["team_id"], name: "index_members_on_team_id"
     t.index ["user_id"], name: "index_members_on_user_id"
-    t.check_constraint "role::text = ANY (ARRAY['owner'::character varying, 'admin'::character varying, 'member'::character varying, 'viewer'::character varying]::text[])", name: "members_role_allowed"
-    t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'removed'::character varying]::text[])", name: "members_status_allowed"
+    t.check_constraint "role::text = ANY (ARRAY['owner'::character varying::text, 'admin'::character varying::text, 'member'::character varying::text, 'viewer'::character varying::text])", name: "members_role_allowed"
+    t.check_constraint "status::text = ANY (ARRAY['active'::character varying::text, 'removed'::character varying::text])", name: "members_status_allowed"
+  end
+
+  create_table "notification_deliveries", force: :cascade do |t|
+    t.bigint "notification_id", null: false
+    t.string "channel", null: false
+    t.string "status", default: "pending", null: false
+    t.integer "attempts", default: 0, null: false
+    t.datetime "next_attempt_at", null: false
+    t.datetime "locked_at"
+    t.string "lease_token"
+    t.datetime "sent_at"
+    t.string "last_error"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["channel", "status", "next_attempt_at"], name: "index_notification_deliveries_due"
+    t.index ["notification_id", "channel"], name: "index_notification_deliveries_on_notification_id_and_channel", unique: true
+    t.index ["notification_id"], name: "index_notification_deliveries_on_notification_id"
+    t.check_constraint "attempts >= 0", name: "notification_attempts_nonnegative"
+    t.check_constraint "channel::text = ANY (ARRAY['in_app'::character varying, 'email'::character varying]::text[])", name: "notification_channels_allowed"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'sending'::character varying, 'sent'::character varying, 'failed'::character varying, 'skipped'::character varying]::text[])", name: "notification_delivery_status_allowed"
+  end
+
+  create_table "notification_preferences", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.boolean "activity_in_app", default: true, null: false
+    t.boolean "activity_email", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.bigint "team_id"
+    t.string "event_key", null: false
+    t.string "kind", null: false
+    t.string "category", null: false
+    t.datetime "visible_at"
+    t.datetime "read_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["team_id"], name: "index_notifications_on_team_id"
+    t.index ["user_id", "event_key"], name: "index_notifications_on_user_id_and_event_key", unique: true
+    t.index ["user_id", "team_id", "created_at"], name: "index_notifications_on_user_id_and_team_id_and_created_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+    t.check_constraint "category::text = 'security'::text AND team_id IS NULL OR category::text = 'activity'::text AND team_id IS NOT NULL", name: "notifications_category_team"
   end
 
   create_table "posts", force: :cascade do |t|
@@ -321,7 +367,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_130000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_teams_on_slug", unique: true
-    t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'suspended'::character varying]::text[])", name: "teams_status_allowed"
+    t.check_constraint "status::text = ANY (ARRAY['active'::character varying::text, 'suspended'::character varying::text])", name: "teams_status_allowed"
   end
 
   create_table "users", id: :serial, force: :cascade do |t|
@@ -355,7 +401,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_130000) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
     t.check_constraint "credentials_version >= 0", name: "users_credentials_version_nonnegative"
-    t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'suspended'::character varying]::text[])", name: "users_status_allowed"
+    t.check_constraint "status::text = ANY (ARRAY['active'::character varying::text, 'suspended'::character varying::text])", name: "users_status_allowed"
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
@@ -367,4 +413,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_130000) do
   add_foreign_key "mail_deliveries", "users", on_delete: :nullify
   add_foreign_key "members", "teams"
   add_foreign_key "members", "users"
+  add_foreign_key "notification_deliveries", "notifications"
+  add_foreign_key "notification_preferences", "users"
+  add_foreign_key "notifications", "teams"
+  add_foreign_key "notifications", "users"
 end

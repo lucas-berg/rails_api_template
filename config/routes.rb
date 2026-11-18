@@ -27,8 +27,15 @@ Rails.application.routes.draw do
         resource :settings, only: %i[show update], controller: 'team_settings'
         resource :ownership_transfer, only: :create, controller: 'ownership_transfers'
         resources :audit_events, only: :index
+        resources :notifications, only: :index do
+          post :read, on: :member
+        end
       end
       post 'invitations/accept', to: 'invitation_acceptances#create'
+      resources :security_notifications, only: :index do
+        post :read, on: :member
+      end
+      resource :notification_preferences, only: %i[show update], controller: 'notification_preferences'
       devise_scope :user do
         resource :user, only: %i[update show]
       end

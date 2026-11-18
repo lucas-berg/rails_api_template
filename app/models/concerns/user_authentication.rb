@@ -16,6 +16,7 @@ module UserAuthentication
     after_update :send_reconfirmation_instructions, if: :reconfirmation_required?
     before_update :advance_credentials_version, if: :credentials_changed?
     after_update :revoke_auth_sessions, if: :saved_change_to_credentials_version?
+    after_update :publish_security_notifications
   end
 
   class_methods do
@@ -89,5 +90,18 @@ module UserAuthentication
     # Bulk revocation is atomic with the credential change and requires no session callbacks.
     # rubocop:disable-next Rails/SkipsModelValidations
     auth_sessions.where(revoked_at: nil).update_all(revoked_at: revoked_at, updated_at: revoked_at)
+  end
+
+  def publish_security_notifications
+    return if has_attribute?(:deleted_at) && self[:deleted_at].present?
+
+    publish_security_notification('password_changed') if saved_change_to_encrypted_password?
+    return unless saved_change_to_status?
+
+    publish_security_notification(suspended? ? 'account_suspended' : 'account_restored')
+  end
+
+  def publish_security_notification(kind)
+    Notifications::Publish.call(user: self, kind:, event_key: "user:#{id}:#{kind}:#{credentials_version}")
   end
 end
