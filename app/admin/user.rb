@@ -64,7 +64,7 @@ ActiveAdmin.register User do
       row :created_at
       row :updated_at
     end
-    if current_admin_user.super_admin?
+    if current_admin_user.super_admin? && resource.deleted_at.nil?
       panel 'Change account status' do
         %w[suspend restore].each do |operation|
           form action: "/admin/users/#{resource.id}/#{operation}", method: :post do

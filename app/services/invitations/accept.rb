@@ -13,20 +13,30 @@ module Invitations
     end
 
     def call
-      @invitation = Invitation.find_by!(token_digest: Digest::SHA256.hexdigest(@token))
-      @team = @invitation.team
-      @team.with_lock do
-        @invitation.reload
-        validate_acceptance!
-        member = @team.members.find_or_initialize_by(user_id: @actor.id)
-        return member if @invitation.accepted_at && member.persisted? && member.active?
-
-        validate_pending!
-        accept_member!(member)
+      Lifecycle::MembershipLock.with_user(@actor) do
+        Lifecycle::OwnerGuard.accepting_memberships!(@actor)
+        accept_invitation
       end
     end
 
     private
+
+    def accept_invitation
+      @invitation = Invitation.find_by!(token_digest: Digest::SHA256.hexdigest(@token))
+      @team = @invitation.team
+      @team.with_lock { accept_locked_invitation }
+    end
+
+    def accept_locked_invitation
+      @actor.reload
+      @invitation.reload
+      validate_acceptance!
+      member = @team.members.find_or_initialize_by(user_id: @actor.id)
+      return member if @invitation.accepted_at && member.persisted? && member.active?
+
+      validate_pending!
+      accept_member!(member)
+    end
 
     def validate_pending!
       unless @invitation.pending?

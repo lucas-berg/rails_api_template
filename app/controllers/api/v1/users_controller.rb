@@ -9,15 +9,25 @@ module API
 
       def update
         attributes = update_user_params
-        if attributes.key?(:email) && attributes[:email] != current_user.email
-          raise ActiveRecord::RecordInvalid, current_user unless current_user.update_with_password(attributes)
-        else
-          current_user.update!(attributes.except(:current_password))
+        current_user.with_lock do
+          unless current_user.active_for_authentication?
+            return render json: { error: 'Sign in to continue.' }, status: :unauthorized
+          end
+
+          update_profile(attributes)
         end
         show
       end
 
       private
+
+      def update_profile(attributes)
+        if attributes.key?(:email) && attributes[:email] != current_user.email
+          raise ActiveRecord::RecordInvalid, current_user unless current_user.update_with_password(attributes)
+        else
+          current_user.update!(attributes.except(:current_password))
+        end
+      end
 
       def update_user_params
         supplied_user = params.require(:user)

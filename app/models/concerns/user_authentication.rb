@@ -8,6 +8,7 @@ module UserAuthentication
 
     enum :status, { active: 'active', suspended: 'suspended' }, validate: true
     validates :credentials_version, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+    validate :deleted_accounts_stay_suspended
 
     # Persist mail intent before commit, so mail failure cannot leave an unnotified account change.
     skip_callback :commit, :after, :send_on_create_confirmation_instructions
@@ -46,11 +47,18 @@ module UserAuthentication
   end
 
   def restore!
-    update!(status: 'active')
+    with_lock { update!(status: 'active') }
+  end
+
+  def restorable?
+    return false if deleted_account?
+    return true unless persisted?
+
+    !DeletionRequest.where(subject: self, status: %w[processing failed]).where.not(stage: 'requested').exists?
   end
 
   def active_for_authentication?
-    super && active?
+    super && active? && !deleted_account?
   end
 
   def inactive_message
@@ -59,6 +67,12 @@ module UserAuthentication
 
   def authenticatable_salt
     "#{super}:#{credentials_version}"
+  end
+
+  def update_tracked_fields!(request)
+    return if new_record?
+
+    with_lock { super if active_for_authentication? }
   end
 
   def send_confirmation_instructions
@@ -93,7 +107,7 @@ module UserAuthentication
   end
 
   def publish_security_notifications
-    return if has_attribute?(:deleted_at) && self[:deleted_at].present?
+    return if deleted_account?
 
     publish_security_notification('password_changed') if saved_change_to_encrypted_password?
     return unless saved_change_to_status?
@@ -103,5 +117,15 @@ module UserAuthentication
 
   def publish_security_notification(kind)
     Notifications::Publish.call(user: self, kind:, event_key: "user:#{id}:#{kind}:#{credentials_version}")
+  end
+
+  def deleted_account?
+    has_attribute?(:deleted_at) && self[:deleted_at].present?
+  end
+
+  def deleted_accounts_stay_suspended
+    return unless active? && !restorable?
+
+    errors.add(:status, 'cannot reactivate a deleted account or an account being deleted')
   end
 end

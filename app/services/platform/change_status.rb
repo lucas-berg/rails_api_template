@@ -13,6 +13,7 @@ module Platform
       @reason = reason
       validate!
       @target.with_lock do
+        validate_lifecycle!
         apply_status
         audit
       end
@@ -33,6 +34,14 @@ module Platform
       else
         @target.update!(status: @status)
       end
+    end
+
+    def validate_lifecycle!
+      available = @target.is_a?(User) ? @target.restorable? : %w[active suspended].include?(@target.status)
+      return if @target.deleted_at.nil? && available
+
+      raise Collaboration::Conflict.new('deletion_in_progress',
+                                        'Use the deletion cancellation flow; deleted records cannot be restored')
     end
 
     def audit

@@ -1,0 +1,4 @@
+en:
+  lifecycle_mailer:
+    deletion_completed:
+      subject: Your deletion request is complete

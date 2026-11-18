@@ -3,6 +3,16 @@
 module Members
   class TransferOwnership < Collaboration::Operation
     def call(member_id)
+      recipient = team.active_members.find(member_id).user
+      Lifecycle::MembershipLock.with_user(recipient) do
+        Lifecycle::OwnerGuard.accepting_memberships!(recipient)
+        transfer_to(member_id)
+      end
+    end
+
+    private
+
+    def transfer_to(member_id)
       within_team do
         authorize!(:transfer_ownership, team)
         previous_owner = team.active_members.find_by!(user_id: actor.id)
@@ -16,8 +26,6 @@ module Members
         new_owner
       end
     end
-
-    private
 
     def transfer!(previous_owner, new_owner)
       new_owner.update!(role: 'owner')

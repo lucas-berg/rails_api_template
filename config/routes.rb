@@ -49,6 +49,9 @@ Rails.application.routes.draw do
         post :read, on: :member
       end
       resource :notification_preferences, only: %i[show update], controller: 'notification_preferences'
+      post 'teams/:team_id/deletion_request', to: 'deletion_requests#create'
+      post 'user/deletion_request', to: 'deletion_requests#create'
+      resources :deletion_requests, only: %i[show destroy]
       devise_scope :user do
         resource :user, only: %i[update show]
       end

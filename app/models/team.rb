@@ -1,5 +1,23 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: teams
+#
+#  id         :bigint           not null, primary key
+#  deleted_at :datetime
+#  locale     :string           default("en"), not null
+#  name       :string           not null
+#  slug       :string           not null
+#  status     :string           default("active"), not null
+#  timezone   :string           default("UTC"), not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+# Indexes
+#
+#  index_teams_on_slug  (slug) UNIQUE
+#
 class Team < ApplicationRecord
   LOCALES = %w[en zh-CN].freeze
 
@@ -11,7 +29,8 @@ class Team < ApplicationRecord
   has_many :documents, dependent: :restrict_with_error
   has_many :notifications, dependent: :restrict_with_error
 
-  enum :status, { active: 'active', suspended: 'suspended' }, validate: true
+  enum :status, { active: 'active', suspended: 'suspended', deletion_pending: 'deletion_pending',
+                  deleting: 'deleting', deleted: 'deleted' }, validate: true
 
   before_validation :assign_slug, on: :create
 

@@ -15,6 +15,7 @@ module Collaboration
     def within_team
       team.with_lock do
         raise Conflict.new('team_suspended', 'This team is suspended') unless team.active?
+        raise Authorization::Forbidden unless actor.is_a?(User) && actor.reload.active_for_authentication?
 
         yield
       end

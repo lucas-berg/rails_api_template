@@ -32,7 +32,7 @@ ActiveAdmin.register Team do
       row :timezone
       row :created_at
     end
-    if current_admin_user.super_admin?
+    if current_admin_user.super_admin? && %w[active suspended].include?(resource.status)
       panel 'Change team status' do
         %w[suspend restore].each do |operation|
           form action: "/admin/teams/#{resource.id}/#{operation}", method: :post do
