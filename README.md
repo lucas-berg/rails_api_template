@@ -4,16 +4,16 @@
 
 Rails API Base is a boilerplate project for JSON RESTful APIs. It follows community best practices in terms of standards, security, and maintainability, integrating a comprehensive suite of testing and code quality tools. Built on Rails 8.1 and Ruby 3.3.13.
 
-The SaaS foundation uses **Team** as the tenant and **Member** for team roles, with Pundit policies and scopes; Devise/JWT handles authentication. The [five-step implementation plan](doc/saas-implementation-plan.md), [operations guide](doc/saas-operations.md), and [data lifecycle runbook](doc/saas-data-lifecycle.md) and [validation record](doc/saas-validation.md) describe the supported flows and recovery procedures. Billing, commercial quotas, API keys, webhooks, enterprise SSO, and business data imports remain outside this implementation.
+The SaaS foundation uses **Team** as the tenant and **Member** for team roles, with Pundit policies and scopes; Devise/JWT handles authentication. The [five-step implementation plan](doc/saas-implementation-plan.md), [operations guide](doc/saas-operations.md), and [deletion module removal notes](doc/saas-data-lifecycle.md) and [validation record](doc/saas-validation.md) describe the supported flows and migration boundaries. Billing, commercial quotas, API keys, webhooks, enterprise SSO, and business data imports remain outside this implementation.
 
 ## Features
 
-The current revision removes file uploads, avatars and business exports, replaces ActiveAdmin with a custom `/admin`, adopts Pundit authorization, and retains Ransack for admin search. Searches run within Pundit scopes using explicit model field allowlists. See the [five-step plan](doc/saas-implementation-plan.md) and [completed validation record](doc/saas-validation.md).
+The current revision gives new email accounts a random UUID that stays stable across email changes, removes DeletionRequest and its lifecycle endpoints (including `DELETE /users`), file uploads, avatars and business exports, replaces ActiveAdmin with a custom `/admin`, adopts Pundit authorization, and retains Ransack for admin search. Searches run within Pundit scopes using explicit model field allowlists. See the [five-step plan](doc/saas-implementation-plan.md) and [completed validation record](doc/saas-validation.md).
 
 This template comes with:
 
 ### Database Schema
-- **Users and Auth Sessions** - Verified email, reconfirmation, profiles, revocable JWT sessions with a fixed 90-day lifetime
+- **Users and Auth Sessions** - Verified email, reconfirmation, profiles, revocable JWT sessions with a fixed 90-day lifetime; random, stable UIDs for new email accounts
 - **Teams, Members and Invitations** - Explicit team scope, owner/admin/member/viewer roles, seven-day invitations and protected ownership transfers
 - **Admin Users and Audit Events** - Separate super_admin/support access and transactional audit records
 - **Mail Deliveries and Notifications** - Transactional mail outbox, mandatory security messages, optional activity preferences, retryable delivery and en/zh-CN text
@@ -41,9 +41,6 @@ This template comes with:
 - **Internal Features**
   - Team notifications, dashboard and onboarding under `/api/v1/teams/:team_id`
   - Own security notifications and notification preferences under `/api/v1`
-- **Account and Team Deletion**
-  - Request account or team deletion, query/cancel own requests under `/api/v1/deletion_requests/:id`
-  - `DELETE /users` schedules account deletion and requires `current_password`; it does not immediately destroy the account
 - **Health Check**
   - API status (`GET /api/v1/status`)
   - PostgreSQL and Redis readiness (`GET /api/v1/ready`)
