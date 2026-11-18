@@ -33,6 +33,8 @@ module Platform
       end
     end
 
+    # The required state is data for a shared precondition, not a choice of retry behavior.
+    # :reek:ControlParameter
     def require_status!(status)
       return if @record.status == status
 

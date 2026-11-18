@@ -28,6 +28,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Notification < ApplicationRecord
+  delegate :email, to: :user, prefix: true
+
   belongs_to :user
   belongs_to :team, optional: true
   has_many :notification_deliveries, dependent: :delete_all

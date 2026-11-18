@@ -26,12 +26,16 @@ RSpec.describe Teams::Create do
     User.where(id: user_ids).delete_all
   end
 
+  # The barrier must collect every ready signal before releasing any worker.
+  # :reek:DuplicateMethodCall
+  # :reek:FeatureEnvy
   def race(*arguments, &operation)
     ready = Queue.new
     gate = Queue.new
     threads = arguments.map { |argument| race_worker(argument, ready, gate, &operation) }
-    arguments.size.times { ready.pop }
-    arguments.size.times { gate << true }
+    worker_count = threads.size
+    worker_count.times { ready.pop }
+    worker_count.times { gate << true }
     threads.map(&:value)
   end
 

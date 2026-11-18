@@ -1,5 +1,23 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: teams
+#
+#  id         :bigint           not null, primary key
+#  deleted_at :datetime
+#  locale     :string           default("en"), not null
+#  name       :string           not null
+#  slug       :string           not null
+#  status     :string           default("active"), not null
+#  timezone   :string           default("UTC"), not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+# Indexes
+#
+#  index_teams_on_slug  (slug) UNIQUE
+#
 FactoryBot.define do
   factory :team do
     sequence(:name) { |n| "Team #{n}" }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_151000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_152000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -76,6 +76,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_151000) do
     t.datetime "occurred_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["actor_type", "actor_id"], name: "index_audit_events_on_actor_type_and_actor_id"
+    t.index ["target_type", "target_id"], name: "index_audit_events_on_target_type_and_target_id"
     t.index ["team_id", "occurred_at", "id"], name: "index_audit_events_on_team_id_and_occurred_at_and_id"
     t.index ["team_id"], name: "index_audit_events_on_team_id"
   end
@@ -156,6 +158,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_151000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["request_uuid"], name: "index_deletion_tombstones_on_request_uuid", unique: true
+    t.index ["subject_type", "subject_id"], name: "index_deletion_tombstones_on_subject_type_and_subject_id"
     t.check_constraint "subject_type::text = ANY (ARRAY['User'::character varying::text, 'Team'::character varying::text])", name: "deletion_tombstones_subject_allowed"
   end
 

@@ -1,5 +1,38 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: mail_deliveries
+#
+#  id                :bigint           not null, primary key
+#  attempts          :integer          default(0), not null
+#  encrypted_payload :text
+#  event_key         :string           not null
+#  kind              :string           not null
+#  last_error        :string
+#  lease_token       :string
+#  locked_at         :datetime
+#  next_attempt_at   :datetime         not null
+#  sent_at           :datetime
+#  status            :string           default("pending"), not null
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  team_id           :bigint
+#  user_id           :integer
+#
+# Indexes
+#
+#  index_mail_deliveries_on_event_key                   (event_key) UNIQUE
+#  index_mail_deliveries_on_status_and_locked_at        (status,locked_at)
+#  index_mail_deliveries_on_status_and_next_attempt_at  (status,next_attempt_at)
+#  index_mail_deliveries_on_team_id                     (team_id)
+#  index_mail_deliveries_on_user_id                     (user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (team_id => teams.id) ON DELETE => nullify
+#  fk_rails_...  (user_id => users.id) ON DELETE => nullify
+#
 class MailDelivery < ApplicationRecord
   DEVISE_NOTIFICATIONS = %w[confirmation_instructions reset_password_instructions unlock_instructions
                             password_change email_changed].freeze

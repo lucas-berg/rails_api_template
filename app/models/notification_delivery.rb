@@ -1,5 +1,32 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: notification_deliveries
+#
+#  id              :bigint           not null, primary key
+#  attempts        :integer          default(0), not null
+#  channel         :string           not null
+#  last_error      :string
+#  lease_token     :string
+#  locked_at       :datetime
+#  next_attempt_at :datetime         not null
+#  sent_at         :datetime
+#  status          :string           default("pending"), not null
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  notification_id :bigint           not null
+#
+# Indexes
+#
+#  index_notification_deliveries_due                             (channel,status,next_attempt_at)
+#  index_notification_deliveries_on_notification_id              (notification_id)
+#  index_notification_deliveries_on_notification_id_and_channel  (notification_id,channel) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (notification_id => notifications.id)
+#
 class NotificationDelivery < ApplicationRecord
   LEASE_DURATION = 5.minutes
   MAX_ATTEMPTS = 8

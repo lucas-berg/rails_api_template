@@ -2,7 +2,7 @@
 
 class InvitationMailer < ApplicationMailer
   def invitation(invitation, token)
-    @team_name = invitation.team.name
+    @team_name = invitation.team_name
     @expires_at = invitation.expires_at
     @accept_url = invitation_url(token)
     mail(to: invitation.normalized_email, subject: "Invitation to #{@team_name}")
