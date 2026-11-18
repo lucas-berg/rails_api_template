@@ -3,6 +3,8 @@
 class AuthSession < ApplicationRecord
   class InvalidCredentials < StandardError; end
 
+  RANSACK_ATTRIBUTES = %w[id user_id expires_at revoked_at last_used_at created_at].freeze
+
   belongs_to :user
 
   validates :jti_digest, presence: true, uniqueness: true

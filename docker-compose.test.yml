@@ -19,6 +19,7 @@ services:
       HEADLESS: true
       RAILS_ENV: test
       DOCKER_ENABLED: "false"
+      RATE_LIMIT_REDIS_URL: redis://redis:6379/2
     tty: true
     stdin_open: true
     volumes:
@@ -26,10 +27,13 @@ services:
       - test_node_modules:/src/app/node_modules
     depends_on:
       - db
+      - redis
       - chrome-server
     links:
       - db:db
       - chrome-server:chrome-server
+  redis:
+    image: redis:7-alpine
   db:
     image: postgres:16
     environment:

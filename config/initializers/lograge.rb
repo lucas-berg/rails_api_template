@@ -10,7 +10,9 @@ Rails.application.configure do
       host: request.host,
       path: request.path,
       user_agent: request.user_agent,
-      remote_ip: request.remote_ip
+      remote_ip: request.remote_ip,
+      request_id: request.request_id,
+      team_id: Current.team&.id
     }
   end
 end

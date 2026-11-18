@@ -57,6 +57,9 @@ ActiveAdmin.setup do |config|
   # This setting changes the method which Active Admin calls
   # within the application controller.
   config.authentication_method = :authenticate_admin_user!
+  config.authorization_adapter = 'PlatformAuthorization'
+  config.on_unauthorized_access = :access_denied
+  config.download_links = false
 
   # == User Authorization
   #
@@ -133,7 +136,7 @@ ActiveAdmin.setup do |config|
   #
   # Enable and disable Batch Actions
   #
-  config.batch_actions = true
+  config.batch_actions = false
 
   # == Controller Filters
   #
@@ -223,7 +226,8 @@ ActiveAdmin.setup do |config|
   config.namespace :admin do |admin|
     admin.build_menu :default do |menu|
       menu.add label: 'Feature Flags',
-               url: '/admin/feature-flags', html_options: { target: :blank }
+               url: '/admin/feature-flags', html_options: { target: :blank },
+               if: proc { current_admin_user.super_admin? }
     end
   end
 

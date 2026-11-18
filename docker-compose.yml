@@ -10,6 +10,7 @@ services:
       POSTGRES_HOST: db
       PORT: "3000"
       DOCKER_ENABLED: "false"
+      RATE_LIMIT_REDIS_URL: redis://redis:6379/2
     tty: true
     stdin_open: true
     volumes:
@@ -18,12 +19,23 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/status"]
         interval: 5s
         timeout: 10s
         retries: 3
         start_period: 40s
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
   db:
     image: postgres:16
     environment:
