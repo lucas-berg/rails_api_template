@@ -18,10 +18,7 @@ RSpec.describe Ransack do
     Notification => [{ user_id_eq: 1, team_id_eq: 1, kind_eq: 'invitation_accepted', category_eq: 'activity' },
                      %w[event_key]],
     NotificationDelivery => [{ status_eq: 'failed', channel_eq: 'email', notification_id_eq: 1 },
-                             %w[lease_token last_error]],
-    DeletionRequest => [{ subject_type_eq: 'User', subject_id_eq: 1, status_eq: 'pending' },
-                        %w[encrypted_recipient uuid]],
-    DeletionTombstone => [{ subject_type_eq: 'Team', subject_id_eq: 1 }, %w[fingerprint request_uuid]]
+                             %w[lease_token last_error]]
   }.each do |model, (filters, protected_attributes)|
     context "when searching #{model.name}" do
       it 'accepts the explicit fields used by its administration form' do

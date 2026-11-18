@@ -140,4 +140,34 @@ RSpec.describe 'Platform access' do
     expect(response.parsed_body.css('input[name="reason"]')).to be_empty
     expect(response.body).not_to include(user.encrypted_password)
   end
+
+  it 'keeps historically deleted teams visible without restoring their access' do
+    team.update!(status: 'deleted', deleted_at: 1.day.ago)
+    sign_in operator
+
+    get "/admin/teams/#{team.id}"
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body.css('input[name="reason"]')).to be_empty
+
+    post "/admin/teams/#{team.id}/restore", params: { reason: 'Attempt to restore a deleted team' }
+    expect(response).to have_http_status(:conflict)
+    expect(team.reload).to be_deleted
+    expect(team.deleted_at).to be_present
+    expect(AuditEvent.where(action: 'team.active')).to be_empty
+  end
+
+  it 'keeps historically deleted accounts visible without restoring their access' do
+    user = create(:user, status: 'suspended', deleted_at: 1.day.ago)
+    sign_in operator
+
+    get "/admin/users/#{user.id}"
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body.css('input[name="reason"]')).to be_empty
+
+    post "/admin/users/#{user.id}/restore", params: { reason: 'Attempt to restore a deleted account' }
+    expect(response).to have_http_status(:conflict)
+    expect(user.reload).to be_suspended
+    expect(user.deleted_at).to be_present
+    expect(AuditEvent.where(action: 'user.active')).to be_empty
+  end
 end

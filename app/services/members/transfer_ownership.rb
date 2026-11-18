@@ -3,28 +3,25 @@
 module Members
   class TransferOwnership < Collaboration::Operation
     def call(member_id)
-      recipient = team.active_members.find(member_id).user
-      Lifecycle::MembershipLock.with_user(recipient) do
-        Lifecycle::OwnerGuard.accepting_memberships!(recipient)
-        transfer_to(member_id)
+      within_team do
+        Pundit.authorize(actor, team, :transfer_ownership?)
+        previous_owner = team.active_members.find_by!(user_id: actor.id)
+        new_owner = active_member!(member_id)
+        validate_recipient!(new_owner)
+        transfer!(previous_owner, new_owner)
+        new_owner
       end
     end
 
     private
 
-    def transfer_to(member_id)
-      within_team do
-        Pundit.authorize(actor, team, :transfer_ownership?)
-        previous_owner = team.active_members.find_by!(user_id: actor.id)
-        new_owner = active_member!(member_id)
-        if new_owner == previous_owner
-          raise Collaboration::Conflict.new('already_owner',
-                                            'Choose another active member')
-        end
-
-        transfer!(previous_owner, new_owner)
-        new_owner
+    def validate_recipient!(new_owner)
+      if new_owner.user_id == actor.id
+        raise Collaboration::Conflict.new('already_owner', 'Choose another active member')
       end
+      return if new_owner.user.reload.active_for_authentication?
+
+      raise Collaboration::Conflict.new('inactive_account', 'Choose a member with an active account')
     end
 
     def transfer!(previous_owner, new_owner)

@@ -18,19 +18,3 @@ zh-CN:
     ownership_transferred:
       title: 团队所有权已转移
       body: 此团队的所有权已转移。
-    deletion:
-      team_requested:
-        title: 已申请删除团队
-        body: 此团队的删除已排期。
-      team_canceled:
-        title: 已取消删除团队
-        body: 此团队的删除申请已取消。
-      account_requested:
-        title: 已申请注销账号
-        body: 您的账号注销已排期。
-      account_canceled:
-        title: 已取消注销账号
-        body: 您的账号注销申请已取消。
-      team_completed:
-        title: 团队已删除
-        body: 申请的团队删除已完成。

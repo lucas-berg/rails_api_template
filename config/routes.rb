@@ -1,12 +1,20 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  devise_for :users, controllers: {
+  devise_for :users, skip: :registrations, controllers: {
     sessions: 'users/sessions',
     registrations: 'users/registrations',
     passwords: 'users/passwords',
     confirmations: 'users/confirmations'
   }
+
+  devise_scope :user do
+    get 'users/sign_up', to: 'users/registrations#new', as: :new_user_registration
+    get 'users/edit', to: 'users/registrations#edit', as: :edit_user_registration
+    get 'users/cancel', to: 'users/registrations#cancel', as: :cancel_user_registration
+    post 'users', to: 'users/registrations#create', as: :user_registration
+    match 'users', to: 'users/registrations#update', via: %i[patch put]
+  end
 
   authenticate :user do
     resource :account, only: :show, controller: 'users/accounts'
@@ -38,9 +46,6 @@ Rails.application.routes.draw do
         post :read, on: :member
       end
       resource :notification_preferences, only: %i[show update], controller: 'notification_preferences'
-      post 'teams/:team_id/deletion_request', to: 'deletion_requests#create'
-      post 'user/deletion_request', to: 'deletion_requests#create'
-      resources :deletion_requests, only: %i[show destroy]
       devise_scope :user do
         resource :user, only: %i[update show]
       end
@@ -68,15 +73,11 @@ Rails.application.routes.draw do
     resources :auth_sessions, only: %i[index show]
     resources :audit_events, only: %i[index show]
     resources :notifications, only: %i[index show]
-    resources :deletion_tombstones, only: %i[index show]
     resources :mail_deliveries, only: %i[index show] do
       post :retry_delivery, on: :member
     end
     resources :notification_deliveries, only: %i[index show] do
       post :retry_delivery, on: :member
-    end
-    resources :deletion_requests, only: %i[index show] do
-      post :retry_cleanup, on: :member
     end
     authenticate(:admin_user, ->(admin) { Pundit.policy!(admin, %i[admin dashboard]).manage_tools? }) do
       mount Flipper::UI.app(Flipper) => '/feature-flags'

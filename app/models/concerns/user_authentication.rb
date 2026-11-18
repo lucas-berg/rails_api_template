@@ -51,10 +51,7 @@ module UserAuthentication
   end
 
   def restorable?
-    return false if deleted_account?
-    return true unless persisted?
-
-    !DeletionRequest.where(subject: self, status: %w[processing failed]).where.not(stage: 'requested').exists?
+    !deleted_account?
   end
 
   def active_for_authentication?
@@ -126,6 +123,6 @@ module UserAuthentication
   def deleted_accounts_stay_suspended
     return unless active? && !restorable?
 
-    errors.add(:status, 'cannot reactivate a deleted account or an account being deleted')
+    errors.add(:status, 'cannot reactivate a deleted account')
   end
 end

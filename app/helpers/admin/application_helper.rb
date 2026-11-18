@@ -7,7 +7,6 @@ module Admin
        ['Members', admin_members_path], ['Invitations', admin_invitations_path],
        ['API sessions', admin_auth_sessions_path], ['Mail deliveries', admin_mail_deliveries_path],
        ['Notifications', admin_notifications_path], ['Notification deliveries', admin_notification_deliveries_path],
-       ['Deletion requests', admin_deletion_requests_path], ['Deletion ledger', admin_deletion_tombstones_path],
        ['Audit history', admin_audit_events_path], ['Administrators', admin_admin_users_path]]
     end
 
@@ -23,7 +22,7 @@ module Admin
       tone = case status
              when 'failed', 'suspended', 'removed' then 'danger'
              when 'active', 'sent', 'completed', 'super_admin' then 'success'
-             when 'pending', 'processing', 'sending', 'deletion_pending', 'deleting' then 'pending'
+             when 'pending', 'sending' then 'pending'
              else 'neutral'
              end
       tag.span(status.humanize, class: "admin-badge admin-badge--#{tone}")

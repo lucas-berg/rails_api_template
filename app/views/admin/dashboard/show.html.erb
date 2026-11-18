@@ -4,14 +4,12 @@
 <section class="admin-stats" aria-label="Platform totals">
   <%= link_to admin_users_path, class: 'admin-stat' do %><span>Accounts</span><strong><%= number_with_delimiter(@user_count) %></strong><small>Excluding deleted accounts →</small><% end %>
   <%= link_to admin_teams_path, class: 'admin-stat' do %><span>Teams</span><strong><%= number_with_delimiter(@team_count) %></strong><small>Excluding deleted teams →</small><% end %>
-  <%= link_to admin_deletion_requests_path(q: { status_eq: 'pending' }), class: 'admin-stat' do %><span>Scheduled deletions</span><strong><%= number_with_delimiter(@pending_deletion_count) %></strong><small>In the cooling period →</small><% end %>
 </section>
 
 <section class="admin-panel admin-detail-panel"><div class="admin-section-heading"><h2>Needs attention</h2><p>Open a failed operation to inspect its status and audit history.</p></div>
   <div class="admin-attention">
     <%= link_to admin_mail_deliveries_path(q: { status_eq: 'failed' }) do %><span><strong>Transactional mail</strong><small>Confirmation, password reset and invitations</small></span><span class="admin-count"><%= @failed_mail_count %></span><% end %>
     <%= link_to admin_notification_deliveries_path(q: { status_eq: 'failed' }) do %><span><strong>Notification delivery</strong><small>Account security and team activity</small></span><span class="admin-count"><%= @failed_notification_count %></span><% end %>
-    <%= link_to admin_deletion_requests_path(q: { status_eq: 'failed' }) do %><span><strong>Deletion cleanup</strong><small>Interrupted or failed data cleanup</small></span><span class="admin-count"><%= @failed_deletion_count %></span><% end %>
   </div>
 </section>
 

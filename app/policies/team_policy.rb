@@ -19,8 +19,6 @@ class TeamPolicy < ApplicationPolicy
     membership_for(record)&.owner? == true
   end
 
-  alias request_deletion? transfer_ownership?
-
   class Scope < ApplicationPolicy::Scope
     def resolve
       return scope.none unless verified_user?

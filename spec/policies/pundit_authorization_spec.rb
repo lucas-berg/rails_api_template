@@ -6,7 +6,7 @@ RSpec.describe Pundit do
   let(:owner) { create(:user) }
   let(:team) { Teams::Create.call(actor: owner, attributes: { name: 'Policy team' }) }
 
-  %w[active suspended deletion_pending].each do |status|
+  %w[active suspended].each do |status|
     it "preserves read access for a #{status} team" do
       team.update!(status:)
       expect(described_class.policy!(owner, team)).to be_show
@@ -14,12 +14,10 @@ RSpec.describe Pundit do
     end
   end
 
-  %w[deleting deleted].each do |status|
-    it "excludes a #{status} team from both record access and the scope" do
-      team.update!(status:)
-      expect(described_class.policy!(owner, team)).not_to be_show
-      expect(described_class.policy_scope!(owner, Team)).not_to include(team)
-    end
+  it 'excludes a historically deleted team from both record access and the scope' do
+    team.update!(status: 'deleted', deleted_at: Time.current)
+    expect(described_class.policy!(owner, team)).not_to be_show
+    expect(described_class.policy_scope!(owner, Team)).not_to include(team)
   end
 
   it 'never expands an already limited relation or includes another users team' do
@@ -87,20 +85,17 @@ RSpec.describe Pundit do
     expect(described_class.policy!(owner, invitation)).to be_create
   end
 
-  it 'restricts personal sessions, preferences and deletion requests to their owner' do
+  it 'restricts personal sessions and preferences to their owner' do
     outsider = create(:user)
     headers = auth_headers(owner)
     expect(headers).to have_key('Authorization')
     session = owner.auth_sessions.last
     preference = NotificationPreference.new(user: owner)
-    deletion = Deletions::Request.call(actor: owner, subject: owner, password: owner.password)
 
     expect(described_class.policy!(owner, session)).to be_destroy
     expect(described_class.policy!(outsider, session)).not_to be_destroy
     expect(described_class.policy_scope!(outsider, AuthSession)).not_to include(session)
     expect(described_class.policy!(outsider, preference)).not_to be_update
-    expect(described_class.policy!(outsider, deletion)).not_to be_cancel
-    expect(described_class.policy_scope!(outsider, DeletionRequest)).not_to include(deletion)
   end
 
   it 'keeps support read-only and gives privileged operations only to platform super administrators' do

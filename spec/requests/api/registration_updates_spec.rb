@@ -17,14 +17,4 @@ RSpec.describe 'JSON registration maintenance', openapi: { security: [{ 'BearerA
       expect(user.auth_sessions.where(revoked_at: nil)).to be_empty
     end
   end
-
-  it 'schedules account deletion without immediately deleting the user' do
-    signed_headers = headers
-    expect {
-      delete user_registration_path, headers: signed_headers, params: { current_password: user.password }, as: :json
-    }.not_to change(User, :count)
-    expect(response).to have_http_status(:accepted)
-    expect(json[:data]).to include(status: 'pending', stage: 'requested', subject_type: 'User')
-    expect(response.headers['Location']).to eq("/api/v1/deletion_requests/#{json[:data][:id]}")
-  end
 end

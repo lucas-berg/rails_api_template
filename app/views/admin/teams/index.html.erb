@@ -3,7 +3,7 @@
 <%= search_form_for @search, url: admin_teams_path, html: { class: "admin-filters" } do |form| %>
   <div><%= form.label :id_eq, "ID" %><%= form.number_field :id_eq, min: 1 %></div>
   <div><%= form.label :name_cont, "Name" %><%= form.search_field :name_cont, placeholder: "Contains name" %></div>
-  <div><%= form.label :status_eq, "Status" %><%= form.select :status_eq, %w[active suspended deletion_pending deleting deleted], include_blank: "All" %></div>
+  <div><%= form.label :status_eq, "Status" %><%= form.select :status_eq, %w[active suspended deleted], include_blank: "All" %></div>
   <div><%= label_tag :per_page, "Per page" %><%= select_tag :per_page, options_for_select([20, 50, 100], @per_page) %></div>
   <%= form.submit "Search", class: "admin-button" %><%= link_to "Clear", admin_teams_path, class: "admin-text-link" %>
 <% end %>

@@ -20,7 +20,7 @@
 #
 class Team < ApplicationRecord
   LOCALES = %w[en zh-CN].freeze
-  ACCESSIBLE_STATUSES = %w[active suspended deletion_pending].freeze
+  ACCESSIBLE_STATUSES = %w[active suspended].freeze
 
   has_many :members, dependent: :restrict_with_error
   has_many :active_members, -> { active }, class_name: 'Member', dependent: :restrict_with_error, inverse_of: :team
@@ -29,8 +29,7 @@ class Team < ApplicationRecord
   has_many :audit_events, dependent: :restrict_with_error
   has_many :notifications, dependent: :restrict_with_error
 
-  enum :status, { active: 'active', suspended: 'suspended', deletion_pending: 'deletion_pending',
-                  deleting: 'deleting', deleted: 'deleted' }, validate: true
+  enum :status, { active: 'active', suspended: 'suspended', deleted: 'deleted' }, validate: true
 
   before_validation :assign_slug, on: :create
 
@@ -38,8 +37,9 @@ class Team < ApplicationRecord
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/ }
   validates :locale, inclusion: { in: LOCALES }
   validate :valid_timezone
+  validate :deleted_teams_stay_deleted
 
-  scope :accessible, -> { where(status: ACCESSIBLE_STATUSES) }
+  scope :accessible, -> { where(status: ACCESSIBLE_STATUSES, deleted_at: nil) }
 
   def self.ransackable_attributes(_auth_object = nil)
     %w[id name status]
@@ -50,7 +50,7 @@ class Team < ApplicationRecord
   end
 
   def accessible?
-    ACCESSIBLE_STATUSES.include?(status)
+    deleted_at.nil? && ACCESSIBLE_STATUSES.include?(status)
   end
 
   def flipper_id
@@ -58,6 +58,12 @@ class Team < ApplicationRecord
   end
 
   private
+
+  def deleted_teams_stay_deleted
+    return if deleted? || (deleted_at.nil? && status_in_database != 'deleted')
+
+    errors.add(:status, 'cannot reactivate a deleted team')
+  end
 
   def assign_slug
     self.slug ||= "#{name.to_s.parameterize.presence || 'team'}-#{SecureRandom.hex(4)}"

@@ -18,19 +18,3 @@ en:
     ownership_transferred:
       title: Team ownership changed
       body: Ownership of this team has been transferred.
-    deletion:
-      team_requested:
-        title: Team deletion requested
-        body: Deletion of this team has been scheduled.
-      team_canceled:
-        title: Team deletion canceled
-        body: The request to delete this team was canceled.
-      account_requested:
-        title: Account deletion requested
-        body: Deletion of your account was scheduled.
-      account_canceled:
-        title: Account deletion canceled
-        body: The account deletion request was canceled.
-      team_completed:
-        title: Team deleted
-        body: The requested team deletion has completed.

@@ -31,4 +31,46 @@ RSpec.describe 'Browser invitation acceptance' do
     expect(response).to have_http_status(:forbidden)
     expect(invitation.reload.accepted_at).to be_nil
   end
+
+  context 'when an invitation references a historical team' do
+    let(:guest) { create(:user) }
+    let(:team) { create(:team, name: 'Private historical team') }
+    let!(:invitation) do
+      create(:invitation, team:, normalized_email: guest.email, token_digest: Digest::SHA256.hexdigest('old-token'))
+    end
+
+    before { sign_in guest }
+
+    it 'hides a team whose status is deleted even without a deletion timestamp' do
+      team.update!(status: 'deleted')
+      get invitation_acceptance_path(token: 'old-token')
+
+      expect(response).to have_http_status(:not_found)
+      expect(response.body).not_to include(team.name, 'Accept invitation')
+      expect(invitation.reload.accepted_at).to be_nil
+    end
+
+    it 'hides a team with a deletion timestamp even if its stored status is active' do
+      # Legacy data may contain a contradictory status written outside model validation.
+      # rubocop:disable-next Rails/SkipsModelValidations
+      team.update_columns(deleted_at: Time.current)
+      get invitation_acceptance_path(token: 'old-token')
+
+      expect(response).to have_http_status(:not_found)
+      expect(response.body).not_to include(team.name, 'Accept invitation')
+      expect(invitation.reload.accepted_at).to be_nil
+    end
+
+    it 'continues displaying a suspended team invitation while rejecting acceptance' do
+      team.update!(status: 'suspended')
+      get invitation_acceptance_path(token: 'old-token')
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(team.name, 'Accept invitation')
+      post invitation_acceptance_path
+      expect(response).to have_http_status(:conflict)
+      expect(invitation.reload.accepted_at).to be_nil
+      expect(team.members.where(user: guest)).to be_empty
+    end
+  end
 end

@@ -43,7 +43,7 @@ button, input[type="submit"] { cursor: pointer; }
 .admin-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .admin-section-heading h2 { margin: 0; }
 .admin-section-heading p { font-size: 12px; }
-.admin-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 23px; }
+.admin-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 23px; }
 .admin-stat { display: grid; gap: 8px; padding: 23px; border: 1px solid #dde3e9; border-radius: 9px; background: #fff; color: #243345; }
 .admin-stat:hover { border-color: #6baf9f; text-decoration: none; }
 .admin-stat > span { color: #68788b; font-size: 12px; }

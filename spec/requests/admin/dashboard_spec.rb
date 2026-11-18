@@ -14,10 +14,12 @@ RSpec.describe 'Admin dashboard', openapi: false do
 
     expect(response).to have_http_status(:ok)
     page = response.parsed_body
-    expect(page.css('.admin-stat strong').map(&:text)).to eq(%w[1 1 0])
-    expect(page.css('.admin-count').map(&:text)).to eq(%w[1 0 0])
+    expect(page.css('.admin-stat strong').map(&:text)).to eq(%w[1 1])
+    expect(page.css('.admin-count').map(&:text)).to eq(%w[1 0])
     expect(response.body).to include('team.created', 'Needs attention', '/admin/jobs', '/admin/feature-flags')
     expect(response.body).not_to include('ActiveAdmin', 'aa:', 'private-token', delivery.encrypted_payload)
+    expect(response.body).not_to include('Scheduled deletions', 'Deletion cleanup', '/admin/deletion_requests',
+                                         '/admin/deletion_tombstones')
     expect(page.at_css('link[rel="stylesheet"]')['href']).to match(%r{/assets/admin-[a-f0-9]+\.css})
   end
 

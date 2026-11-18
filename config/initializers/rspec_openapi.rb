@@ -13,22 +13,6 @@ RSpec::OpenAPI.security_schemes = {
 }
 RSpec::OpenAPI.response_headers = %w[Authorization Location Retry-After]
 
-RSpec::OpenAPI.post_process_hook = lambda do |_path, _records, spec|
-  # The generator omits all DELETE bodies; these two API actions require password confirmation.
-  ['/users', '/api/v1/deletion_requests/{id}'].each do |path|
-    operation = spec.dig(:paths, path.to_sym, :delete)
-    next unless operation
-
-    operation[:requestBody] = {
-      required: true,
-      content: { 'application/json': {
-        schema: { type: 'object', required: ['current_password'],
-                  properties: { current_password: { type: 'string', format: 'password', writeOnly: true } } }
-      } }
-    }
-  end
-end
-
 if ENV['OPENAPI']
   RSpec.configure do |config|
     config.prepend_after(:example, type: :request) do

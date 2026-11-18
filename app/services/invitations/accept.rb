@@ -13,19 +13,12 @@ module Invitations
     end
 
     def call
-      Lifecycle::MembershipLock.with_user(@actor) do
-        Lifecycle::OwnerGuard.accepting_memberships!(@actor)
-        accept_invitation
-      end
-    end
-
-    private
-
-    def accept_invitation
       @invitation = Invitation.find_by!(token_digest: Digest::SHA256.hexdigest(@token))
       @team = @invitation.team
       @team.with_lock { accept_locked_invitation }
     end
+
+    private
 
     def accept_locked_invitation
       @actor.reload
@@ -66,7 +59,9 @@ module Invitations
 
     def validate_acceptance!
       Pundit.authorize(@actor, @invitation, :accept?)
-      raise Collaboration::Conflict.new('team_suspended', 'This team is suspended') unless @team.active?
+      unless @team.active? && @team.accessible?
+        raise Collaboration::Conflict.new('team_suspended', 'This team is unavailable')
+      end
       raise ActiveRecord::RecordNotFound unless @invitation.token_matches?(@token)
     end
   end

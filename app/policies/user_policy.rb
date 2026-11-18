@@ -6,5 +6,4 @@ class UserPolicy < ApplicationPolicy
   end
 
   alias update? show?
-  alias request_deletion? show?
 end

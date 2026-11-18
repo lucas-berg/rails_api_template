@@ -2,32 +2,9 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Account lifecycle security', openapi: false do
+RSpec.describe 'Historical deleted account protection', openapi: false do
   let(:user) { create(:user) }
   let(:headers) { auth_headers(user) }
-
-  it 'requires the current password on the existing Devise deletion endpoint' do
-    signed_headers = headers
-    expect {
-      delete user_registration_path, headers: signed_headers, as: :json
-    }.not_to change(DeletionRequest, :count)
-    expect(response).to have_http_status(:bad_request)
-  end
-
-  it 'rejects an incorrect deletion password without changing the account' do
-    delete user_registration_path, headers: headers, params: { current_password: 'incorrect' }, as: :json
-    expect(response).to have_http_status(:forbidden)
-    expect(DeletionRequest.where(subject: user)).to be_empty
-    expect(user.reload).to be_active
-  end
-
-  it 'rejects account deletion while the user remains the sole team owner' do
-    Teams::Create.call(actor: user, attributes: { name: 'Owned team' })
-    delete user_registration_path, headers: headers, params: { current_password: user.password }, as: :json
-    expect(response).to have_http_status(:conflict)
-    expect(json.fetch(:errors).first.fetch(:code)).to eq('last_owner')
-    expect(DeletionRequest.where(subject: user)).to be_empty
-  end
 
   it 'rejects a deleted account JWT and password even if its status was accidentally set active' do
     signed_headers = headers
@@ -49,7 +26,7 @@ RSpec.describe 'Account lifecycle security', openapi: false do
     allow(API::V1::UsersController).to receive(:new).and_return(controller)
     allow(controller).to receive(:update_user_params).and_wrap_original do |original|
       attributes = original.call
-      # Simulate the lifecycle worker's controlled anonymization after request authentication.
+      # Simulate a legacy deleted-account marker becoming visible after authentication.
       # rubocop:disable-next Rails/SkipsModelValidations
       user.update_columns(deleted_at: Time.current, status: 'suspended', username: '')
       attributes
@@ -67,7 +44,7 @@ RSpec.describe 'Account lifecycle security', openapi: false do
     controller = Users::RegistrationsController.new
     allow(Users::RegistrationsController).to receive(:new).and_return(controller)
     allow(controller).to receive(:update_resource).and_wrap_original do |original, resource, attributes|
-      # Reproduce cleanup committing after Devise loaded the request's account instance.
+      # Reproduce a legacy deleted-account marker appearing after Devise loaded the account.
       # rubocop:disable-next Rails/SkipsModelValidations
       user.update_columns(deleted_at: Time.current, status: 'suspended',
                           email: "deleted-#{user.id}@deleted.invalid", unconfirmed_email: nil)
@@ -87,7 +64,7 @@ RSpec.describe 'Account lifecycle security', openapi: false do
     password = user.password
     allow(User).to receive(:find_for_database_authentication).and_return(user)
     allow(user).to receive(:update_tracked_fields!).and_wrap_original do |original, request|
-      # Cleanup commits after Devise verified credentials, before its tracking callback writes.
+      # A legacy deleted-account marker appears before the tracking callback writes.
       # rubocop:disable-next Rails/SkipsModelValidations
       User.find(user.id).update_columns(deleted_at: Time.current, status: 'suspended',
                                         email: "deleted-#{user.id}@deleted.invalid", sign_in_count: 0,

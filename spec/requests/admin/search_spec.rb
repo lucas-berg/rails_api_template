@@ -53,4 +53,14 @@ RSpec.describe 'Administration search' do
     get '/admin/users', params: { q: { email_cont: 'no-match-address' } }
     expect(response.body).to include('No matching records')
   end
+
+  it 'offers only current team states while retaining historical deleted records for review' do
+    team = create(:team, status: 'deleted', deleted_at: 1.day.ago)
+    get '/admin/teams', params: { q: { status_eq: 'deleted' } }
+
+    expect(response).to have_http_status(:ok)
+    statuses = response.parsed_body.css('select[name="q[status_eq]"] option').pluck('value')
+    expect(statuses).to eq(['', 'active', 'suspended', 'deleted'])
+    expect(response.body).to include(team.name)
+  end
 end

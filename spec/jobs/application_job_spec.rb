@@ -5,7 +5,10 @@ require 'rails_helper'
 RSpec.describe ApplicationJob do
   let(:user) { create(:user) }
   let(:team) { create(:team) }
-  let(:deletion) { DeletionRequest.create!(subject: team, requested_by: user, scheduled_at: 1.day.from_now) }
+  let(:delivery) do
+    MailDelivery.create!(user:, team_id: team.id, kind: 'invitation', event_key: SecureRandom.uuid,
+                         next_attempt_at: Time.current)
+  end
   let(:observations) { [] }
   let(:log_output) { StringIO.new }
 
@@ -13,24 +16,26 @@ RSpec.describe ApplicationJob do
     logger = Logger.new(log_output)
     logger.formatter = ->(_severity, _time, _program, message) { "#{message}\n" }
     allow(Rails).to receive(:logger).and_return(logger)
-    allow(Deletions::BeginProcessing).to receive(:call) do
+    builder = instance_double(MailDeliveryMessage)
+    allow(MailDeliveryMessage).to receive(:new).and_return(builder)
+    allow(builder).to receive(:build) do
       observations << Current.attributes
-      false
+      nil
     end
     Current.reset
   end
 
   after { Current.reset }
 
-  it 'persists the originating request and derives the tenant from the current deletion request on the worker' do
-    deletion
+  it 'persists the originating request and derives the tenant from the current mail delivery on the worker' do
+    delivery
     Current.request_id = 'origin-request'
-    queued = ProcessDeletionJob.perform_later(deletion.id)
+    queued = SendMailDeliveryJob.perform_later(delivery.id)
     serialized = enqueued_jobs.find { |job| job['job_id'] == queued.job_id }
     expect(serialized.fetch('source_request_id')).to eq('origin-request')
     expect(serialized).not_to have_key('team_id')
 
-    worker = ProcessDeletionJob.deserialize(serialized)
+    worker = SendMailDeliveryJob.deserialize(serialized)
     Current.request_id = 'unrelated-request'
     Current.team = create(:team)
     worker.perform_now
@@ -44,8 +49,8 @@ RSpec.describe ApplicationJob do
   end
 
   it 'clears a stale tenant when a missing record or a multi-team sweep runs on the same worker thread' do
-    ProcessDeletionJob.perform_now(deletion.id)
-    missing = ProcessDeletionJob.new(-1)
+    SendMailDeliveryJob.perform_now(delivery.id)
+    missing = SendMailDeliveryJob.new(-1)
     allow(missing).to receive(:perform) { observations << Current.attributes }
     missing.perform_now
     sweep = SweepMailDeliveriesJob.new
@@ -69,9 +74,9 @@ RSpec.describe ApplicationJob do
   it 'tags internal execution logs and clears the tags even if the job raises' do
     logger = ActiveSupport::TaggedLogging.new(Logger.new(log_output))
     allow(Rails).to receive(:logger).and_return(logger)
-    deletion
+    delivery
     Current.request_id = 'tagged-request'
-    job = ProcessDeletionJob.new(deletion.id)
+    job = SendMailDeliveryJob.new(delivery.id)
     allow(job).to receive(:perform) do
       Rails.logger.info('inside-worker')
       raise IOError
@@ -87,9 +92,9 @@ RSpec.describe ApplicationJob do
   end
 
   it 'restores an actively executing parent job after a nested job and resets the final thread context' do
-    deletion
+    delivery
     Current.request_id = 'parent-request'
-    parent = ProcessDeletionJob.new(deletion.id)
+    parent = SendMailDeliveryJob.new(delivery.id)
     allow(parent).to receive(:perform) do
       observations << Current.attributes
       child = SweepMailDeliveriesJob.new
@@ -105,8 +110,8 @@ RSpec.describe ApplicationJob do
     expect(Current.attributes.values).to all(be_nil)
   end
 
-  it 'derives the context of team deletion from its stored subject' do
-    job = ProcessDeletionJob.new(deletion.id)
+  it 'derives the context of team mail from its stored delivery' do
+    job = SendMailDeliveryJob.new(delivery.id)
     allow(job).to receive(:perform) { observations << Current.attributes }
     job.perform_now
 
@@ -114,9 +119,9 @@ RSpec.describe ApplicationJob do
     expect(Current.attributes.values).to all(be_nil)
   end
 
-  it 'does not attach an account deletion to a team inherited from another operation' do
-    deletion = DeletionRequest.create!(subject: user, requested_by: user, scheduled_at: 1.day.from_now)
-    job = ProcessDeletionJob.new(deletion.id)
+  it 'does not attach personal account mail to a team inherited from another operation' do
+    delivery = MailDelivery.enqueue_devise(user, :password_change)
+    job = SendMailDeliveryJob.new(delivery.id)
     allow(job).to receive(:perform) { observations << Current.attributes }
     Current.team = team
     job.perform_now
@@ -126,9 +131,9 @@ RSpec.describe ApplicationJob do
   end
 
   it 'retains the original request identifier when the same job is enqueued for retry' do
-    deletion
+    delivery
     Current.request_id = 'retry-origin'
-    job = ProcessDeletionJob.new(deletion.id)
+    job = SendMailDeliveryJob.new(delivery.id)
     job.perform_now
     clear_enqueued_jobs
     job.retry_job(wait: 1.minute)

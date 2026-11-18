@@ -8,12 +8,7 @@ module Notifications
       'account_restored' => 'security',
       'invitation_accepted' => 'activity',
       'member_role_changed' => 'activity',
-      'ownership_transferred' => 'activity',
-      'deletion.team_requested' => 'activity',
-      'deletion.team_canceled' => 'activity',
-      'deletion.account_requested' => 'security',
-      'deletion.account_canceled' => 'security',
-      'deletion.team_completed' => 'security'
+      'ownership_transferred' => 'activity'
     }.freeze
     LOCALES = %w[en zh-CN].freeze
 

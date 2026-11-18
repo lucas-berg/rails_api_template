@@ -117,19 +117,6 @@ RSpec.describe 'Account security', openapi: false do
     expect(response).to redirect_to(new_user_session_path)
   end
 
-  it 'schedules account deletion after password confirmation without immediately removing the account' do
-    headers = auth_headers(user)
-    expect {
-      delete user_registration_path, headers: headers, params: { current_password: user.password }, as: :json
-    }.not_to change(User, :count)
-
-    expect(response).to have_http_status(:accepted)
-    expect(json.fetch(:data).fetch(:status)).to eq('pending')
-    expect(response.headers['Location']).to eq("/api/v1/deletion_requests/#{json.fetch(:data).fetch(:id)}")
-    get api_v1_user_path, headers: headers
-    expect(response).to have_http_status(:ok)
-  end
-
   it 'never serializes authentication internals, including when explicitly requested' do
     data = user.serializable_hash(only: [:encrypted_password], methods: [:password])
     expect(data.keys).to match_array(User::PUBLIC_ATTRIBUTES)

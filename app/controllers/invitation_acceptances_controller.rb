@@ -13,6 +13,8 @@ class InvitationAcceptancesController < ApplicationController
     return unless user_signed_in?
 
     @invitation = Invitation.find_by!(token_digest: Digest::SHA256.hexdigest(session[:pending_invitation_token].to_s))
+    return head :not_found unless @invitation.team.accessible?
+
     head :forbidden unless matching_recipient?
   end
 
