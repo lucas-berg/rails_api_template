@@ -2,7 +2,7 @@
 
 class PlatformAuthorization < ActiveAdmin::AuthorizationAdapter
   READABLE = %w[User AdminUser Team Member Invitation AuditEvent AuthSession MailDelivery Notification
-                NotificationDelivery Document].freeze
+                NotificationDelivery Document DataExport].freeze
   ACTIONS = { 'AdminUser' => %i[create update], 'User' => %i[suspend restore],
               'Team' => %i[suspend restore], 'MailDelivery' => [:retry_delivery],
               'NotificationDelivery' => [:retry_delivery], 'Document' => [:retry_purge] }.freeze

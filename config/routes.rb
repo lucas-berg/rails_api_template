@@ -40,6 +40,9 @@ Rails.application.routes.draw do
         resource :avatar, only: %i[update destroy]
         resource :dashboard, only: :show, controller: 'team_dashboards'
         resource :onboarding, only: :show, controller: 'team_onboarding'
+        resources :exports, controller: 'data_exports', only: %i[index create show] do
+          get :download, on: :member
+        end
       end
       post 'invitations/accept', to: 'invitation_acceptances#create'
       resources :security_notifications, only: :index do

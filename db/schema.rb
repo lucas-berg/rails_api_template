@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_141000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -95,6 +95,68 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_141000) do
     t.check_constraint "credentials_version >= 0", name: "auth_sessions_version_nonnegative"
   end
 
+  create_table "data_exports", force: :cascade do |t|
+    t.bigint "team_id", null: false
+    t.integer "requested_by_id", null: false
+    t.string "status", default: "pending", null: false
+    t.integer "attempts", default: 0, null: false
+    t.bigint "staging_blob_id"
+    t.string "lease_token"
+    t.datetime "processing_started_at"
+    t.datetime "expires_at"
+    t.string "failure_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["requested_by_id"], name: "index_data_exports_on_requested_by_id"
+    t.index ["staging_blob_id"], name: "index_data_exports_on_staging_blob_id"
+    t.index ["status", "expires_at"], name: "index_data_exports_on_status_and_expires_at"
+    t.index ["team_id"], name: "index_data_exports_on_team_id"
+    t.check_constraint "attempts >= 0", name: "data_exports_attempts_nonnegative"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'processing'::character varying::text, 'ready'::character varying::text, 'failed'::character varying::text, 'expired'::character varying::text])", name: "data_exports_status_allowed"
+  end
+
+  create_table "deletion_requests", force: :cascade do |t|
+    t.string "uuid", null: false
+    t.string "subject_type", null: false
+    t.bigint "subject_id", null: false
+    t.integer "requested_by_id"
+    t.string "status", default: "pending", null: false
+    t.string "stage", default: "requested", null: false
+    t.string "previous_team_status"
+    t.datetime "scheduled_at", null: false
+    t.datetime "processing_started_at"
+    t.datetime "completed_at"
+    t.datetime "canceled_at"
+    t.string "failure_code"
+    t.integer "attempts", default: 0, null: false
+    t.text "encrypted_recipient"
+    t.datetime "notified_at"
+    t.integer "notice_attempts", default: 0, null: false
+    t.string "notice_failure_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["requested_by_id"], name: "index_deletion_requests_on_requested_by_id"
+    t.index ["status", "scheduled_at"], name: "index_deletion_requests_on_status_and_scheduled_at"
+    t.index ["subject_type", "subject_id"], name: "index_deletion_requests_on_open_subject", unique: true, where: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('processing'::character varying)::text, ('failed'::character varying)::text]))"
+    t.index ["uuid"], name: "index_deletion_requests_on_uuid", unique: true
+    t.check_constraint "attempts >= 0 AND notice_attempts >= 0", name: "deletion_requests_attempts_nonnegative"
+    t.check_constraint "stage::text = ANY (ARRAY['requested'::character varying::text, 'ledger'::character varying::text, 'files'::character varying::text, 'exports'::character varying::text, 'records'::character varying::text, 'completed'::character varying::text])", name: "deletion_requests_stage_allowed"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'processing'::character varying::text, 'failed'::character varying::text, 'completed'::character varying::text, 'canceled'::character varying::text])", name: "deletion_requests_status_allowed"
+    t.check_constraint "subject_type::text = ANY (ARRAY['User'::character varying::text, 'Team'::character varying::text])", name: "deletion_requests_subject_allowed"
+  end
+
+  create_table "deletion_tombstones", force: :cascade do |t|
+    t.string "request_uuid", null: false
+    t.string "subject_type", null: false
+    t.bigint "subject_id", null: false
+    t.string "fingerprint", null: false
+    t.datetime "deleted_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["request_uuid"], name: "index_deletion_tombstones_on_request_uuid", unique: true
+    t.check_constraint "subject_type::text = ANY (ARRAY['User'::character varying::text, 'Team'::character varying::text])", name: "deletion_tombstones_subject_allowed"
+  end
+
   create_table "documents", force: :cascade do |t|
     t.bigint "team_id", null: false
     t.integer "uploader_id", null: false
@@ -119,7 +181,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_141000) do
     t.index ["team_id"], name: "index_documents_on_team_id"
     t.index ["uploader_id"], name: "index_documents_on_uploader_id"
     t.check_constraint "byte_size >= 0 AND purge_attempts >= 0", name: "documents_counts_valid"
-    t.check_constraint "status::text = ANY (ARRAY['uploading'::character varying, 'processing'::character varying, 'ready'::character varying, 'rejected'::character varying, 'deleting'::character varying, 'deleted'::character varying, 'purge_failed'::character varying]::text[])", name: "documents_status_valid"
+    t.check_constraint "status::text = ANY (ARRAY['uploading'::character varying::text, 'processing'::character varying::text, 'ready'::character varying::text, 'rejected'::character varying::text, 'deleting'::character varying::text, 'deleted'::character varying::text, 'purge_failed'::character varying::text])", name: "documents_status_valid"
   end
 
   create_table "flipper_features", force: :cascade do |t|
@@ -338,8 +400,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_141000) do
     t.index ["notification_id", "channel"], name: "index_notification_deliveries_on_notification_id_and_channel", unique: true
     t.index ["notification_id"], name: "index_notification_deliveries_on_notification_id"
     t.check_constraint "attempts >= 0", name: "notification_attempts_nonnegative"
-    t.check_constraint "channel::text = ANY (ARRAY['in_app'::character varying, 'email'::character varying]::text[])", name: "notification_channels_allowed"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'sending'::character varying, 'sent'::character varying, 'failed'::character varying, 'skipped'::character varying]::text[])", name: "notification_delivery_status_allowed"
+    t.check_constraint "channel::text = ANY (ARRAY['in_app'::character varying::text, 'email'::character varying::text])", name: "notification_channels_allowed"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'sending'::character varying::text, 'sent'::character varying::text, 'failed'::character varying::text, 'skipped'::character varying::text])", name: "notification_delivery_status_allowed"
   end
 
   create_table "notification_preferences", force: :cascade do |t|
@@ -393,8 +455,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_141000) do
     t.string "locale", default: "en", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
     t.index ["slug"], name: "index_teams_on_slug", unique: true
-    t.check_constraint "status::text = ANY (ARRAY['active'::character varying::text, 'suspended'::character varying::text])", name: "teams_status_allowed"
+    t.check_constraint "status::text = ANY (ARRAY['active'::character varying::text, 'suspended'::character varying::text, 'deletion_pending'::character varying::text, 'deleting'::character varying::text, 'deleted'::character varying::text])", name: "teams_status_allowed"
   end
 
   create_table "users", id: :serial, force: :cascade do |t|
@@ -424,6 +487,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_141000) do
     t.integer "credentials_version", default: 0, null: false
     t.jsonb "preferences", default: {}, null: false
     t.bigint "avatar_document_id"
+    t.datetime "deleted_at"
     t.index ["avatar_document_id"], name: "index_users_on_avatar_document_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -436,6 +500,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_141000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "audit_events", "teams"
   add_foreign_key "auth_sessions", "users"
+  add_foreign_key "data_exports", "active_storage_blobs", column: "staging_blob_id", on_delete: :nullify
+  add_foreign_key "data_exports", "teams"
+  add_foreign_key "data_exports", "users", column: "requested_by_id"
+  add_foreign_key "deletion_requests", "users", column: "requested_by_id"
   add_foreign_key "documents", "teams"
   add_foreign_key "documents", "users", column: "uploader_id"
   add_foreign_key "invitations", "teams"

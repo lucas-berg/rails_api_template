@@ -29,6 +29,9 @@ Layout/ClassStructure:
   Enabled: true
 
 Layout/LineLength:
+  # Preserve database-generated partial index descriptions in AnnotateRb output.
+  AllowedPatterns:
+    - '\A#  index_'
   Exclude:
     - db/**/*
 

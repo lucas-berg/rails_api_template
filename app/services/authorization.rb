@@ -11,14 +11,20 @@ module Authorization
 
   # Explicit context is checked against the record by each tenant policy.
   # :reek:ControlParameter
-  # :reek:DuplicateMethodCall
   def self.policy_for(actor, resource, team)
     case resource
     when Team then TeamPolicy.new(actor, resource)
-    when Member then MemberPolicy.new(actor, resource, team || resource.team)
-    when Invitation then InvitationPolicy.new(actor, resource, team || resource.team)
     when Notification then NotificationPolicy.new(actor, resource)
-    when Document then DocumentPolicy.new(actor, resource, team || resource.team)
+    when Member, Invitation, Document, DataExport then tenant_policy_for(actor, resource, team || resource.team)
+    end
+  end
+
+  def self.tenant_policy_for(actor, resource, team)
+    case resource
+    when Member then MemberPolicy.new(actor, resource, team)
+    when Invitation then InvitationPolicy.new(actor, resource, team)
+    when Document then DocumentPolicy.new(actor, resource, team)
+    when DataExport then DataExportPolicy.new(actor, resource, team)
     end
   end
 
